@@ -23,6 +23,7 @@ $previousEnv = @{}
 foreach ($name in $envNames) { $previousEnv[$name] = [Environment]::GetEnvironmentVariable($name) }
 $pubspecPath = Join-Path $workspace 'pubspec.yaml'
 $originalPubspec = [IO.File]::ReadAllText($pubspecPath)
+$originalWorkingTreeDirty = [bool](git -C $workspace status --porcelain)
 
 function Invoke-Checked([scriptblock]$Command) {
     & $Command
@@ -61,6 +62,16 @@ try {
     # installations configure only the offline feed in the user's NuGet config.
     $nativeBuildDir = Join-Path $workspace 'build/windows/x64'
     New-Item -ItemType Directory -Path $nativeBuildDir -Force | Out-Null
+    # CMake caches an install prefix containing the previous executable target.
+    # Renaming the app requires regenerating that cache, not changing plugins.
+    $cmakeCacheFile = Join-Path $nativeBuildDir 'CMakeCache.txt'
+    if (Test-Path -LiteralPath $cmakeCacheFile) {
+        $binaryMatch = [regex]::Match([IO.File]::ReadAllText((Join-Path $workspace 'windows/CMakeLists.txt')), 'set\(BINARY_NAME\s+"([^"]+)"\)')
+        $cachedTarget = [regex]::Match([IO.File]::ReadAllText($cmakeCacheFile), 'CMAKE_INSTALL_PREFIX:[^=]+=\$<TARGET_FILE_DIR:([^>]+)>')
+        if ($binaryMatch.Success -and $cachedTarget.Success -and $binaryMatch.Groups[1].Value -ne $cachedTarget.Groups[1].Value) {
+            Remove-Item -LiteralPath $cmakeCacheFile
+        }
+    }
     $nugetConfig = Join-Path $nativeBuildDir 'NuGet.Config'
     [IO.File]::WriteAllText($nugetConfig, @'
 <?xml version="1.0" encoding="utf-8"?>
@@ -182,7 +193,7 @@ try {
         framework = $flutterInfo.frameworkRevision; engine = $flutterInfo.engineRevision
         touchFix = 'https://github.com/flutter/flutter/pull/190029'
         appCommit = (git rev-parse HEAD).Trim(); builtAt = [DateTimeOffset]::UtcNow.ToString('o')
-        workingTreeDirty = [bool](git status --porcelain)
+        workingTreeDirty = $originalWorkingTreeDirty
         logDirectory = '%TEMP%\Pilipili-touch-logs'
         runtimeFiles = @($runtimeFiles | ForEach-Object { $_.Name })
         omittedUnusedLibraries = $omittedLibraries

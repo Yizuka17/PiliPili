@@ -1,4 +1,4 @@
-import 'package:PiliPlus/plugin/pl_player/controller.dart';
+import 'package:Pilipili/plugin/pl_player/controller.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, debugPrint;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleState, WidgetsBinding;

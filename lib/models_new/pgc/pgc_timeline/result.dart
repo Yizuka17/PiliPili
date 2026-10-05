@@ -1,4 +1,4 @@
-import 'package:PiliPlus/models_new/pgc/pgc_timeline/episode.dart';
+import 'package:Pilipili/models_new/pgc/pgc_timeline/episode.dart';
 
 class TimelineResult {
   String? date;

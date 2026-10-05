@@ -1,0 +1,47 @@
+diff --git a/packages/flutter_tools/lib/src/windows/visual_studio.dart b/packages/flutter_tools/lib/src/windows/visual_studio.dart
+index e4d05e33..cec597a2 100644
+--- a/packages/flutter_tools/lib/src/windows/visual_studio.dart
++++ b/packages/flutter_tools/lib/src/windows/visual_studio.dart
+@@ -156,6 +156,10 @@ class VisualStudio {
+   /// The path to CMake, or null if no Visual Studio installation has
+   /// the components necessary to build.
+   String? get cmakePath {
++    final String? portableCmake = _platform.environment['PILI_PORTABLE_CMAKE'];
++    if (portableCmake != null && _fileSystem.file(portableCmake).existsSync()) {
++      return portableCmake;
++    }
+     final VswhereDetails? details = _bestVisualStudioDetails;
+     if (details == null || !details.isUsable || details.installationPath == null) {
+       return null;
+@@ -307,7 +311,9 @@ class VisualStudio {
+       // The C++ toolchain required by the template.
+       'Microsoft.VisualStudio.Component.VC.Tools.x86.x64': cppToolchainDescription,
+       // CMake
+-      'Microsoft.VisualStudio.Component.VC.CMake.Project': 'C++ CMake tools for Windows',
++      if (!(_platform.environment['PILI_PORTABLE_CMAKE'] != null &&
++          _fileSystem.file(_platform.environment['PILI_PORTABLE_CMAKE']!).existsSync()))
++        'Microsoft.VisualStudio.Component.VC.CMake.Project': 'C++ CMake tools for Windows',
+     };
+   }
+ 
+@@ -339,7 +345,10 @@ class VisualStudio {
+   }) {
+     final requirementArguments = validateRequirements
+         ? <String>[
+-            if (requiredWorkload != null) ...<String>['-requires', requiredWorkload],
++            if (requiredWorkload != null && _platform.environment['PILI_PORTABLE_CMAKE'] == null)
++              ...<String>['-requires', requiredWorkload]
++            else
++              '-requires',
+             ..._requiredComponents(_minimumSupportedVersion).keys,
+           ]
+         : <String>[];
+@@ -435,7 +444,7 @@ class VisualStudio {
+     // Check in the order of stable VS, stable BT, pre-release VS, pre-release BT.
+     final minimumVersionArguments = <String>[
+       _vswhereMinVersionArgument,
+-      _minimumSupportedVersion.toString(),
++      _platform.environment['PILI_VS_VERSION'] ?? _minimumSupportedVersion.toString(),
+     ];
+     for (final checkForPrerelease in <bool>[false, true]) {
+       for (final String requiredWorkload in _requiredWorkloads) {

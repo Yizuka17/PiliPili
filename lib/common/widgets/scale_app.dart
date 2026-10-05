@@ -2,6 +2,7 @@ import 'dart:async' show scheduleMicrotask;
 import 'dart:collection' show Queue;
 import 'dart:ui' show PointerDataPacket;
 
+import 'package:Pilipili/services/touch_diagnostics.dart';
 import 'package:flutter/gestures.dart' show PointerEventConverter;
 import 'package:flutter/rendering.dart' show RenderView, ViewConfiguration;
 import 'package:flutter/widgets.dart';
@@ -68,6 +69,12 @@ class ScaledWidgetsFlutterBinding extends WidgetsFlutterBinding {
   }
 
   final Queue<PointerEvent> _pendingPointerEvents = Queue<PointerEvent>();
+
+  @override
+  void handlePointerEvent(PointerEvent event) {
+    TouchDiagnostics.pointer(event);
+    super.handlePointerEvent(event);
+  }
 
   /// When we scale UI using [ViewConfiguration], [ui.window] stays the same.
   ///

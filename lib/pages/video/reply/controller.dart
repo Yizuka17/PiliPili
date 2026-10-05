@@ -1,13 +1,13 @@
-import 'package:PiliPlus/grpc/bilibili/main/community/reply/v1.pb.dart'
+import 'package:Pilipili/grpc/bilibili/main/community/reply/v1.pb.dart'
     show MainListReply, ReplyInfo;
-import 'package:PiliPlus/grpc/reply.dart';
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/models/common/video/video_type.dart';
-import 'package:PiliPlus/models_new/dynamic/dyn_mention/item.dart';
-import 'package:PiliPlus/pages/common/reply_controller.dart';
-import 'package:PiliPlus/pages/video/controller.dart';
-import 'package:PiliPlus/pages/video/reply/vote/reply_vote_mixin.dart';
-import 'package:PiliPlus/utils/id_utils.dart';
+import 'package:Pilipili/grpc/reply.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/models/common/video/video_type.dart';
+import 'package:Pilipili/models_new/dynamic/dyn_mention/item.dart';
+import 'package:Pilipili/pages/common/reply_controller.dart';
+import 'package:Pilipili/pages/video/controller.dart';
+import 'package:Pilipili/pages/video/reply/vote/reply_vote_mixin.dart';
+import 'package:Pilipili/utils/id_utils.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:get/get.dart';
 

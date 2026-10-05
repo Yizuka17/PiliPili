@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:PiliPlus/models_new/pgc/pgc_info_model/season.dart';
-import 'package:PiliPlus/pages/video/introduction/pgc/controller.dart';
+import 'package:Pilipili/models_new/pgc/pgc_info_model/season.dart';
+import 'package:Pilipili/pages/video/introduction/pgc/controller.dart';
 import 'package:material_ui/material_ui.dart';
 
 class SeasonPanel extends StatelessWidget {

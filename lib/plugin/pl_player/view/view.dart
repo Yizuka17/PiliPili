@@ -3,68 +3,69 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:PiliPlus/common/assets.dart';
-import 'package:PiliPlus/common/constants.dart';
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/cropped_image.dart';
-import 'package:PiliPlus/common/widgets/custom_icon.dart';
-import 'package:PiliPlus/common/widgets/disabled_icon.dart';
-import 'package:PiliPlus/common/widgets/gesture/immediate_tap_gesture_recognizer.dart';
-import 'package:PiliPlus/common/widgets/gesture/mouse_interactive_viewer.dart';
-import 'package:PiliPlus/common/widgets/gesture/player_gesture_recognizer.dart';
-import 'package:PiliPlus/common/widgets/loading_widget.dart';
-import 'package:PiliPlus/common/widgets/pair.dart';
-import 'package:PiliPlus/common/widgets/player_bar.dart';
-import 'package:PiliPlus/common/widgets/progress_bar/audio_video_progress_bar.dart';
-import 'package:PiliPlus/common/widgets/progress_bar/segment_progress_bar.dart';
-import 'package:PiliPlus/common/widgets/view_safe_area.dart';
-import 'package:PiliPlus/models/common/sponsor_block/action_type.dart';
-import 'package:PiliPlus/models/common/sponsor_block/post_segment_model.dart';
-import 'package:PiliPlus/models/common/sponsor_block/segment_type.dart';
-import 'package:PiliPlus/models/common/super_resolution_type.dart';
-import 'package:PiliPlus/models/common/video/video_quality.dart';
-import 'package:PiliPlus/models/video/play/url.dart';
-import 'package:PiliPlus/models_new/video/video_detail/episode.dart' as ugc;
-import 'package:PiliPlus/models_new/video/video_detail/ugc_season.dart';
-import 'package:PiliPlus/pages/common/common_intro_controller.dart';
-import 'package:PiliPlus/pages/danmaku/danmaku_model.dart';
-import 'package:PiliPlus/pages/live_room/widgets/bottom_control.dart'
+import 'package:Pilipili/common/assets.dart';
+import 'package:Pilipili/common/constants.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/cropped_image.dart';
+import 'package:Pilipili/common/widgets/custom_icon.dart';
+import 'package:Pilipili/common/widgets/disabled_icon.dart';
+import 'package:Pilipili/common/widgets/gesture/immediate_tap_gesture_recognizer.dart';
+import 'package:Pilipili/common/widgets/gesture/mouse_interactive_viewer.dart';
+import 'package:Pilipili/common/widgets/gesture/player_gesture_recognizer.dart';
+import 'package:Pilipili/services/touch_diagnostics.dart';
+import 'package:Pilipili/common/widgets/loading_widget.dart';
+import 'package:Pilipili/common/widgets/pair.dart';
+import 'package:Pilipili/common/widgets/player_bar.dart';
+import 'package:Pilipili/common/widgets/progress_bar/audio_video_progress_bar.dart';
+import 'package:Pilipili/common/widgets/progress_bar/segment_progress_bar.dart';
+import 'package:Pilipili/common/widgets/view_safe_area.dart';
+import 'package:Pilipili/models/common/sponsor_block/action_type.dart';
+import 'package:Pilipili/models/common/sponsor_block/post_segment_model.dart';
+import 'package:Pilipili/models/common/sponsor_block/segment_type.dart';
+import 'package:Pilipili/models/common/super_resolution_type.dart';
+import 'package:Pilipili/models/common/video/video_quality.dart';
+import 'package:Pilipili/models/video/play/url.dart';
+import 'package:Pilipili/models_new/video/video_detail/episode.dart' as ugc;
+import 'package:Pilipili/models_new/video/video_detail/ugc_season.dart';
+import 'package:Pilipili/pages/common/common_intro_controller.dart';
+import 'package:Pilipili/pages/danmaku/danmaku_model.dart';
+import 'package:Pilipili/pages/live_room/widgets/bottom_control.dart'
     as live_bottom;
-import 'package:PiliPlus/pages/video/controller.dart';
-import 'package:PiliPlus/pages/video/introduction/pgc/controller.dart';
-import 'package:PiliPlus/pages/video/post_panel/popup_menu_text.dart';
-import 'package:PiliPlus/pages/video/post_panel/view.dart';
-import 'package:PiliPlus/pages/video/widgets/header_control.dart';
-import 'package:PiliPlus/plugin/pl_player/controller.dart';
-import 'package:PiliPlus/plugin/pl_player/models/bottom_control_type.dart';
-import 'package:PiliPlus/plugin/pl_player/models/data_status.dart';
-import 'package:PiliPlus/plugin/pl_player/models/double_tap_type.dart';
-import 'package:PiliPlus/plugin/pl_player/models/fullscreen_mode.dart';
-import 'package:PiliPlus/plugin/pl_player/models/gesture_type.dart';
-import 'package:PiliPlus/plugin/pl_player/models/video_fit_type.dart';
-import 'package:PiliPlus/plugin/pl_player/widgets/app_bar_ani.dart';
-import 'package:PiliPlus/plugin/pl_player/widgets/backward_seek.dart';
-import 'package:PiliPlus/plugin/pl_player/widgets/bottom_control.dart';
-import 'package:PiliPlus/plugin/pl_player/widgets/common_btn.dart';
-import 'package:PiliPlus/plugin/pl_player/widgets/forward_seek.dart';
-import 'package:PiliPlus/plugin/pl_player/widgets/mpv_convert_webp.dart';
-import 'package:PiliPlus/plugin/pl_player/widgets/play_pause_btn.dart';
-import 'package:PiliPlus/utils/android/bindings.g.dart';
-import 'package:PiliPlus/utils/cache_manager.dart';
-import 'package:PiliPlus/utils/connectivity_utils.dart';
-import 'package:PiliPlus/utils/duration_utils.dart';
-import 'package:PiliPlus/utils/extension/num_ext.dart';
-import 'package:PiliPlus/utils/extension/theme_ext.dart';
-import 'package:PiliPlus/utils/feed_back.dart';
-import 'package:PiliPlus/utils/id_utils.dart';
-import 'package:PiliPlus/utils/image_utils.dart';
-import 'package:PiliPlus/utils/ios/pip_helper.dart';
-import 'package:PiliPlus/utils/mobile_observer.dart';
-import 'package:PiliPlus/utils/path_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
-import 'package:PiliPlus/utils/storage.dart';
-import 'package:PiliPlus/utils/storage_key.dart';
-import 'package:PiliPlus/utils/utils.dart';
+import 'package:Pilipili/pages/video/controller.dart';
+import 'package:Pilipili/pages/video/introduction/pgc/controller.dart';
+import 'package:Pilipili/pages/video/post_panel/popup_menu_text.dart';
+import 'package:Pilipili/pages/video/post_panel/view.dart';
+import 'package:Pilipili/pages/video/widgets/header_control.dart';
+import 'package:Pilipili/plugin/pl_player/controller.dart';
+import 'package:Pilipili/plugin/pl_player/models/bottom_control_type.dart';
+import 'package:Pilipili/plugin/pl_player/models/data_status.dart';
+import 'package:Pilipili/plugin/pl_player/models/double_tap_type.dart';
+import 'package:Pilipili/plugin/pl_player/models/fullscreen_mode.dart';
+import 'package:Pilipili/plugin/pl_player/models/gesture_type.dart';
+import 'package:Pilipili/plugin/pl_player/models/video_fit_type.dart';
+import 'package:Pilipili/plugin/pl_player/widgets/app_bar_ani.dart';
+import 'package:Pilipili/plugin/pl_player/widgets/backward_seek.dart';
+import 'package:Pilipili/plugin/pl_player/widgets/bottom_control.dart';
+import 'package:Pilipili/plugin/pl_player/widgets/common_btn.dart';
+import 'package:Pilipili/plugin/pl_player/widgets/forward_seek.dart';
+import 'package:Pilipili/plugin/pl_player/widgets/mpv_convert_webp.dart';
+import 'package:Pilipili/plugin/pl_player/widgets/play_pause_btn.dart';
+import 'package:Pilipili/utils/android/bindings.g.dart';
+import 'package:Pilipili/utils/cache_manager.dart';
+import 'package:Pilipili/utils/connectivity_utils.dart';
+import 'package:Pilipili/utils/duration_utils.dart';
+import 'package:Pilipili/utils/extension/num_ext.dart';
+import 'package:Pilipili/utils/extension/theme_ext.dart';
+import 'package:Pilipili/utils/feed_back.dart';
+import 'package:Pilipili/utils/id_utils.dart';
+import 'package:Pilipili/utils/image_utils.dart';
+import 'package:Pilipili/utils/ios/pip_helper.dart';
+import 'package:Pilipili/utils/mobile_observer.dart';
+import 'package:Pilipili/utils/path_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/storage.dart';
+import 'package:Pilipili/utils/storage_key.dart';
+import 'package:Pilipili/utils/utils.dart';
 import 'package:canvas_danmaku/canvas_danmaku.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_debounce/easy_throttle.dart';
@@ -1149,6 +1150,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   }
 
   void _onTapUp(TapUpDetails details) {
+    TouchDiagnostics.record('playerTapUp', {'kind': details.kind.name});
     switch (details.kind) {
       case ui.PointerDeviceKind.mouse when PlatformUtils.isDesktop:
         plPlayerController.onDoubleTapCenter();
@@ -1187,6 +1189,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   }
 
   void _onDoubleTapDown(TapDownDetails details) {
+    TouchDiagnostics.record('playerDoubleTap', {'kind': details.kind?.name});
     switch (details.kind) {
       case ui.PointerDeviceKind.mouse when PlatformUtils.isDesktop:
         plPlayerController.triggerFullScreen(status: !isFullScreen);
@@ -1224,17 +1227,29 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     return true;
   }
 
-  /// 鼠标中键/右键全屏切换的挂起项：(进入全屏, 应用内全屏)。
+  /// 鼠标中键/右键全屏切换的挂起项：(进入全屏, 应用内全屏, 指针 ID)。
   /// 在鼠标按下时启动原生全屏过渡会与本次点击重叠，窗口可能卡在半过渡状态
   /// 导致鼠标事件失效，因此延后到抬起后执行。
-  (bool, bool)? _pendingFullScreenToggle;
+  (bool, bool, int)? _pendingFullScreenToggle;
 
   void _onPointerDown(PointerDownEvent event) {
     if (PlatformUtils.isDesktop) {
       final buttons = event.buttons;
       final isSecondaryBtn = buttons == kSecondaryMouseButton;
-      if (isSecondaryBtn || buttons == kMiddleMouseButton) {
-        _pendingFullScreenToggle = (!isFullScreen, isSecondaryBtn);
+      if (event.kind == ui.PointerDeviceKind.mouse &&
+          (isSecondaryBtn || buttons == kMiddleMouseButton)) {
+        TouchDiagnostics.record('playerMouseFullscreenQueued', {
+          'pointer': event.pointer,
+          'kind': event.kind.name,
+          'buttons': buttons,
+          'requested': !isFullScreen,
+          'inApp': isSecondaryBtn,
+        });
+        _pendingFullScreenToggle = (
+          !isFullScreen,
+          isSecondaryBtn,
+          event.pointer,
+        );
         return;
       }
     }
@@ -1265,10 +1280,19 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
 
   void _onPointerUp(PointerUpEvent event) {
     final pending = _pendingFullScreenToggle;
-    if (pending == null || event.buttons != 0) {
+    if (pending == null ||
+        event.kind != ui.PointerDeviceKind.mouse ||
+        event.pointer != pending.$3 ||
+        event.buttons != 0) {
       return;
     }
     _pendingFullScreenToggle = null;
+    TouchDiagnostics.record('playerMouseFullscreenReleased', {
+      'pointer': event.pointer,
+      'kind': event.kind.name,
+      'requested': pending.$1,
+      'inApp': pending.$2,
+    });
     if (isFullScreen && plPlayerController.controlsLock.value) {
       plPlayerController
         ..controlsLock.value = false
@@ -1281,7 +1305,9 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   }
 
   void _onPointerCancel(PointerCancelEvent event) {
-    _pendingFullScreenToggle = null;
+    if (_pendingFullScreenToggle?.$3 == event.pointer) {
+      _pendingFullScreenToggle = null;
+    }
   }
 
   void _onPointerPanZoomUpdate(PointerPanZoomUpdateEvent event) {

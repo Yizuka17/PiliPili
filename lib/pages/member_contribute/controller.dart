@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:PiliPlus/models_new/space/space/tab2.dart';
-import 'package:PiliPlus/pages/member/controller.dart';
+import 'package:Pilipili/models_new/space/space/tab2.dart';
+import 'package:Pilipili/pages/member/controller.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 

@@ -2,34 +2,34 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math' show max;
 
-import 'package:PiliPlus/common/widgets/button/toolbar_icon_button.dart';
-import 'package:PiliPlus/common/widgets/custom_icon.dart';
-import 'package:PiliPlus/common/widgets/flutter/text_field/controller.dart'
+import 'package:Pilipili/common/widgets/button/toolbar_icon_button.dart';
+import 'package:Pilipili/common/widgets/custom_icon.dart';
+import 'package:Pilipili/common/widgets/flutter/text_field/controller.dart'
     show RichTextType, RichTextEditingDeltaReplacement;
-import 'package:PiliPlus/common/widgets/flutter/text_field/text_field.dart';
-import 'package:PiliPlus/common/widgets/scroll_physics.dart'
+import 'package:Pilipili/common/widgets/flutter/text_field/text_field.dart';
+import 'package:Pilipili/common/widgets/scroll_physics.dart'
     show platformClampingPhysics;
-import 'package:PiliPlus/common/widgets/view_safe_area.dart';
-import 'package:PiliPlus/grpc/bilibili/main/community/reply/v1.pb.dart'
+import 'package:Pilipili/common/widgets/view_safe_area.dart';
+import 'package:Pilipili/grpc/bilibili/main/community/reply/v1.pb.dart'
     show ReplyInfo;
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/http/video.dart';
-import 'package:PiliPlus/models/dynamics/result.dart' show FilePicModel;
-import 'package:PiliPlus/models_new/dynamic/dyn_mention/item.dart';
-import 'package:PiliPlus/pages/common/publish/common_rich_text_pub_page.dart';
-import 'package:PiliPlus/pages/dynamics_mention/controller.dart';
-import 'package:PiliPlus/pages/emote/controller.dart';
-import 'package:PiliPlus/pages/emote/view.dart';
-import 'package:PiliPlus/pages/video/controller.dart';
-import 'package:PiliPlus/pages/video/reply_search_item/view.dart';
-import 'package:PiliPlus/utils/duration_utils.dart';
-import 'package:PiliPlus/utils/extension/context_ext.dart';
-import 'package:PiliPlus/utils/grid.dart';
-import 'package:PiliPlus/utils/latex_to_unicode.dart';
-import 'package:PiliPlus/utils/path_utils.dart';
-import 'package:PiliPlus/utils/storage_pref.dart';
-import 'package:PiliPlus/utils/theme_utils.dart';
-import 'package:PiliPlus/utils/utils.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/http/video.dart';
+import 'package:Pilipili/models/dynamics/result.dart' show FilePicModel;
+import 'package:Pilipili/models_new/dynamic/dyn_mention/item.dart';
+import 'package:Pilipili/pages/common/publish/common_rich_text_pub_page.dart';
+import 'package:Pilipili/pages/dynamics_mention/controller.dart';
+import 'package:Pilipili/pages/emote/controller.dart';
+import 'package:Pilipili/pages/emote/view.dart';
+import 'package:Pilipili/pages/video/controller.dart';
+import 'package:Pilipili/pages/video/reply_search_item/view.dart';
+import 'package:Pilipili/utils/duration_utils.dart';
+import 'package:Pilipili/utils/extension/context_ext.dart';
+import 'package:Pilipili/utils/grid.dart';
+import 'package:Pilipili/utils/latex_to_unicode.dart';
+import 'package:Pilipili/utils/path_utils.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
+import 'package:Pilipili/utils/theme_utils.dart';
+import 'package:Pilipili/utils/utils.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart' hide TextField;

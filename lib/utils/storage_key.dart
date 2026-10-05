@@ -135,6 +135,7 @@ abstract final class SettingBoxKey {
       optTabletNav = 'optTabletNav',
       banWordForDyn = 'banWordForDyn',
       enableLog = 'enableLog',
+      errorLogDirectory = 'errorLogDirectory',
       memberTab = 'memberTab',
       dynamicDetailRatio = 'dynamicDetailRatio',
       directExitOnBack = 'directExitOnBack',

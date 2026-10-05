@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:PiliPlus/utils/json_file_handler.dart';
-import 'package:PiliPlus/utils/storage_pref.dart';
+import 'package:Pilipili/services/error_log_storage.dart';
+import 'package:Pilipili/utils/json_file_handler.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:catcher_2/utils/log_printer.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 final logger = Logger(
@@ -22,13 +22,10 @@ abstract final class LoggerUtils {
   static Future<File> getLogsPath() async {
     if (_logFile != null) return _logFile!;
 
-    String dir = (await getApplicationDocumentsDirectory()).path;
-    final String filename = p.join(dir, '.pili_logs.json');
-    final File file = File(filename);
-    if (!file.existsSync()) {
-      await file.create(recursive: true);
-    }
-    return _logFile = file;
+    return _logFile = await ErrorLogStorage.resolveFile(
+      defaultDirectory: (await getApplicationDocumentsDirectory()).path,
+      customDirectory: Pref.errorLogDirectory,
+    );
   }
 
   static Future<bool> clearLogs() async {

@@ -1,11 +1,11 @@
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/image/image_save.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/common/widgets/stat/stat.dart';
-import 'package:PiliPlus/models/common/stat_type.dart';
-import 'package:PiliPlus/models_new/space/space_article/item.dart';
-import 'package:PiliPlus/utils/app_scheme.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/image/image_save.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/common/widgets/stat/stat.dart';
+import 'package:Pilipili/models/common/stat_type.dart';
+import 'package:Pilipili/models_new/space/space_article/item.dart';
+import 'package:Pilipili/utils/app_scheme.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
 import 'package:material_ui/material_ui.dart';
 
 class MemberArticleItem extends StatelessWidget {

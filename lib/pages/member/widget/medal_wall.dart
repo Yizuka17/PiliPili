@@ -1,12 +1,12 @@
-import 'package:PiliPlus/common/assets.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/common/widgets/pendant_avatar.dart';
-import 'package:PiliPlus/models_new/live/live_medal_wall/data.dart';
-import 'package:PiliPlus/pages/member/widget/medal_widget.dart';
-import 'package:PiliPlus/utils/app_scheme.dart';
-import 'package:PiliPlus/utils/extension/num_ext.dart';
-import 'package:PiliPlus/utils/extension/theme_ext.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
+import 'package:Pilipili/common/assets.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/common/widgets/pendant_avatar.dart';
+import 'package:Pilipili/models_new/live/live_medal_wall/data.dart';
+import 'package:Pilipili/pages/member/widget/medal_widget.dart';
+import 'package:Pilipili/utils/app_scheme.dart';
+import 'package:Pilipili/utils/extension/num_ext.dart';
+import 'package:Pilipili/utils/extension/theme_ext.dart';
+import 'package:Pilipili/utils/page_utils.dart';
 import 'package:material_ui/material_ui.dart';
 
 class MedalWall extends StatelessWidget {

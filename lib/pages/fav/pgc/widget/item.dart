@@ -1,13 +1,13 @@
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/badge.dart';
-import 'package:PiliPlus/common/widgets/button/icon_button.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/common/widgets/select_mask.dart';
-import 'package:PiliPlus/models/common/badge_type.dart';
-import 'package:PiliPlus/models_new/fav/fav_pgc/list.dart';
-import 'package:PiliPlus/pages/common/multi_select/base.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/badge.dart';
+import 'package:Pilipili/common/widgets/button/icon_button.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/common/widgets/select_mask.dart';
+import 'package:Pilipili/models/common/badge_type.dart';
+import 'package:Pilipili/models_new/fav/fav_pgc/list.dart';
+import 'package:Pilipili/pages/common/multi_select/base.dart';
+import 'package:Pilipili/utils/page_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
 import 'package:material_ui/material_ui.dart';
 
 class FavPgcItem extends StatelessWidget {

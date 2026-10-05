@@ -1,10 +1,10 @@
 import 'dart:math';
 
-import 'package:PiliPlus/common/widgets/loading_widget/loading_widget.dart';
-import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/models_new/space_setting/privacy.dart';
-import 'package:PiliPlus/pages/space_setting/controller.dart';
+import 'package:Pilipili/common/widgets/loading_widget/loading_widget.dart';
+import 'package:Pilipili/common/widgets/scaffold/simple_scaffold.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/models_new/space_setting/privacy.dart';
+import 'package:Pilipili/pages/space_setting/controller.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 

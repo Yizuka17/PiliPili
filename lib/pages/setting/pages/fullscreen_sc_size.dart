@@ -1,16 +1,16 @@
 import 'dart:io' show Platform;
 import 'dart:math' as math;
 
-import 'package:PiliPlus/common/widgets/custom_icon.dart';
-import 'package:PiliPlus/common/widgets/extra_hittest_stack.dart';
-import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
-import 'package:PiliPlus/models_new/live/live_superchat/item.dart';
-import 'package:PiliPlus/pages/live_room/superchat/superchat_card.dart';
-import 'package:PiliPlus/plugin/pl_player/utils/fullscreen.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
-import 'package:PiliPlus/utils/storage.dart';
-import 'package:PiliPlus/utils/storage_key.dart';
-import 'package:PiliPlus/utils/storage_pref.dart';
+import 'package:Pilipili/common/widgets/custom_icon.dart';
+import 'package:Pilipili/common/widgets/extra_hittest_stack.dart';
+import 'package:Pilipili/common/widgets/scaffold/simple_scaffold.dart';
+import 'package:Pilipili/models_new/live/live_superchat/item.dart';
+import 'package:Pilipili/pages/live_room/superchat/superchat_card.dart';
+import 'package:Pilipili/plugin/pl_player/utils/fullscreen.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/storage.dart';
+import 'package:Pilipili/utils/storage_key.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:material_ui/material_ui.dart';
 
 const kFullScreenSCWidth = 255.0;

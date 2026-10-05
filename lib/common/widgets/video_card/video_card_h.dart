@@ -1,17 +1,18 @@
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/badge.dart';
-import 'package:PiliPlus/common/widgets/image/image_save.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/common/widgets/progress_bar/video_progress_indicator.dart';
-import 'package:PiliPlus/common/widgets/stat/stat.dart';
-import 'package:PiliPlus/common/widgets/video_popup_menu.dart';
-import 'package:PiliPlus/http/search.dart';
-import 'package:PiliPlus/models/horizontal_video_model.dart';
-import 'package:PiliPlus/models_new/video/video_detail/dimension.dart';
-import 'package:PiliPlus/utils/date_utils.dart';
-import 'package:PiliPlus/utils/duration_utils.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/badge.dart';
+import 'package:Pilipili/common/widgets/gesture/touch_diagnostic_ink_well.dart';
+import 'package:Pilipili/common/widgets/image/image_save.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/common/widgets/progress_bar/video_progress_indicator.dart';
+import 'package:Pilipili/common/widgets/stat/stat.dart';
+import 'package:Pilipili/common/widgets/video_popup_menu.dart';
+import 'package:Pilipili/http/search.dart';
+import 'package:Pilipili/models/horizontal_video_model.dart';
+import 'package:Pilipili/models_new/video/video_detail/dimension.dart';
+import 'package:Pilipili/utils/date_utils.dart';
+import 'package:Pilipili/utils/duration_utils.dart';
+import 'package:Pilipili/utils/page_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
 import 'package:material_ui/material_ui.dart';
 
 // 视频卡片 - 水平布局
@@ -42,7 +43,8 @@ class VideoCardH extends StatelessWidget {
       child: Stack(
         clipBehavior: .none,
         children: [
-          InkWell(
+          TouchDiagnosticInkWell(
+            scope: 'videoCardH',
             onLongPress: onLongPress,
             onSecondaryTap: PlatformUtils.isMobile ? null : onLongPress,
             onTap: onTap ?? () => pushVideoH(videoItem),

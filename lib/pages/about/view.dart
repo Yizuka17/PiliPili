@@ -1,32 +1,36 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:PiliPlus/build_config.dart';
-import 'package:PiliPlus/common/assets.dart';
-import 'package:PiliPlus/common/constants.dart';
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/dialog/dialog.dart';
-import 'package:PiliPlus/common/widgets/dialog/export_import.dart';
-import 'package:PiliPlus/common/widgets/dialog/simple_dialog_option.dart';
-import 'package:PiliPlus/common/widgets/flutter/list_tile.dart';
-import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
-import 'package:PiliPlus/pages/mine/controller.dart';
-import 'package:PiliPlus/services/logger.dart';
-import 'package:PiliPlus/utils/accounts.dart';
-import 'package:PiliPlus/utils/accounts/account.dart';
-import 'package:PiliPlus/utils/android/android_helper.dart';
-import 'package:PiliPlus/utils/app_scheme.dart';
-import 'package:PiliPlus/utils/cache_manager.dart';
-import 'package:PiliPlus/utils/date_utils.dart';
-import 'package:PiliPlus/utils/device_utils.dart';
-import 'package:PiliPlus/utils/extension/num_ext.dart';
-import 'package:PiliPlus/utils/login_utils.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
-import 'package:PiliPlus/utils/storage.dart';
-import 'package:PiliPlus/utils/update.dart';
-import 'package:PiliPlus/utils/utils.dart';
+import 'package:Pilipili/build_config.dart';
+import 'package:Pilipili/common/assets.dart';
+import 'package:Pilipili/common/constants.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/dialog/dialog.dart';
+import 'package:Pilipili/common/widgets/dialog/export_import.dart';
+import 'package:Pilipili/common/widgets/dialog/simple_dialog_option.dart';
+import 'package:Pilipili/common/widgets/flutter/list_tile.dart';
+import 'package:Pilipili/common/widgets/scaffold/simple_scaffold.dart';
+import 'package:Pilipili/pages/mine/controller.dart';
+import 'package:Pilipili/services/logger.dart';
+import 'package:Pilipili/services/error_log_storage.dart';
+import 'package:Pilipili/utils/accounts.dart';
+import 'package:Pilipili/utils/accounts/account.dart';
+import 'package:Pilipili/utils/android/android_helper.dart';
+import 'package:Pilipili/utils/app_scheme.dart';
+import 'package:Pilipili/utils/cache_manager.dart';
+import 'package:Pilipili/utils/date_utils.dart';
+import 'package:Pilipili/utils/device_utils.dart';
+import 'package:Pilipili/utils/extension/num_ext.dart';
+import 'package:Pilipili/utils/login_utils.dart';
+import 'package:Pilipili/utils/page_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/storage.dart';
+import 'package:Pilipili/utils/storage_key.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
+import 'package:Pilipili/utils/update.dart';
+import 'package:Pilipili/utils/utils.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:get/get.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:material_ui/material_ui.dart' hide ListTile;
@@ -44,6 +48,7 @@ class _AboutPageState extends State<AboutPage> {
   final currentVersion =
       '${BuildConfig.versionName}+${BuildConfig.versionCode}';
   RxString cacheSize = ''.obs;
+  String _activeLogDirectory = '';
 
   late int _pressCount = 0;
 
@@ -51,6 +56,7 @@ class _AboutPageState extends State<AboutPage> {
   void initState() {
     super.initState();
     getCacheSize();
+    _loadLogDirectory();
   }
 
   @override
@@ -66,6 +72,62 @@ class _AboutPageState extends State<AboutPage> {
       }
     });
   }
+
+  Future<void> _loadLogDirectory() async {
+    try {
+      final file = await LoggerUtils.getLogsPath();
+      if (mounted) setState(() => _activeLogDirectory = file.parent.path);
+    } catch (error) {
+      if (mounted) setState(() => _activeLogDirectory = '无法打开日志目录');
+    }
+  }
+
+  Future<void> _changeLogDirectory({bool reset = false}) async {
+    try {
+      if (reset) {
+        await GStorage.setting.delete(SettingBoxKey.errorLogDirectory);
+      } else {
+        final directory = await FilePicker.getDirectoryPath(
+          dialogTitle: '选择错误日志存储目录',
+          initialDirectory: Pref.errorLogDirectory ?? _activeLogDirectory,
+        );
+        if (directory == null) return;
+        await ErrorLogStorage.validateDirectory(directory);
+        await GStorage.setting.put(SettingBoxKey.errorLogDirectory, directory);
+      }
+      if (mounted) setState(() {});
+      SmartDialog.showToast('修改后重启生效，原目录日志保留');
+    } catch (error) {
+      SmartDialog.showToast('无法使用该目录：$error');
+    }
+  }
+
+  void _showLogDirectoryOptions() => showDialog(
+    context: context,
+    builder: (context) => SimpleDialog(
+      title: const Text('错误日志存储位置'),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: Text('当前：$_activeLogDirectory\n修改后重启生效，原目录日志保留。'),
+        ),
+        DialogOption(
+          onPressed: () {
+            Get.back();
+            _changeLogDirectory();
+          },
+          child: const Text('选择目录'),
+        ),
+        DialogOption(
+          onPressed: () {
+            Get.back();
+            _changeLogDirectory(reset: true);
+          },
+          child: const Text('恢复默认（文档目录）'),
+        ),
+      ],
+    ),
+  );
 
   void _showDialog() => showDialog(
     context: context,
@@ -203,6 +265,18 @@ Commit Hash: ${BuildConfig.commitHash}''',
             subtitle: Text('长按清除日志', style: subTitleStyle),
             trailing: Icon(Icons.arrow_forward, size: 16, color: outline),
           ),
+          if (PlatformUtils.isDesktop)
+            ListTile(
+              onTap: _showLogDirectoryOptions,
+              leading: const Icon(Icons.folder_outlined),
+              title: const Text('错误日志存储位置'),
+              subtitle: Text(
+                '当前：$_activeLogDirectory\n'
+                '设置：${Pref.errorLogDirectory ?? "默认（文档目录）"}',
+                style: subTitleStyle,
+              ),
+              trailing: Icon(Icons.arrow_forward, size: 16, color: outline),
+            ),
           ListTile(
             onTap: () {
               if (cacheSize.value.isNotEmpty) {

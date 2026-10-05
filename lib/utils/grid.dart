@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'package:PiliPlus/common/skeleton/video_card_h.dart';
-import 'package:PiliPlus/common/sliver_single_child_delegate.dart';
-import 'package:PiliPlus/utils/storage_pref.dart';
+import 'package:Pilipili/common/skeleton/video_card_h.dart';
+import 'package:Pilipili/common/sliver_single_child_delegate.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 

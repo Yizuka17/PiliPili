@@ -1,12 +1,12 @@
-import 'package:PiliPlus/common/widgets/dialog/dialog.dart';
-import 'package:PiliPlus/models_new/follow/list.dart';
-import 'package:PiliPlus/pages/fan/controller.dart';
-import 'package:PiliPlus/pages/follow_type/view.dart';
-import 'package:PiliPlus/pages/follow_type/widgets/item.dart';
-import 'package:PiliPlus/pages/share/view.dart' show UserModel;
-import 'package:PiliPlus/utils/parse_int.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
-import 'package:PiliPlus/utils/utils.dart';
+import 'package:Pilipili/common/widgets/dialog/dialog.dart';
+import 'package:Pilipili/models_new/follow/list.dart';
+import 'package:Pilipili/pages/fan/controller.dart';
+import 'package:Pilipili/pages/follow_type/view.dart';
+import 'package:Pilipili/pages/follow_type/widgets/item.dart';
+import 'package:Pilipili/pages/share/view.dart' show UserModel;
+import 'package:Pilipili/utils/parse_int.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/utils.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 

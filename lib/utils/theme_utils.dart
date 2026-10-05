@@ -1,7 +1,7 @@
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/utils/extension/theme_ext.dart';
-import 'package:PiliPlus/utils/font_utils.dart';
-import 'package:PiliPlus/utils/storage_pref.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/utils/extension/theme_ext.dart';
+import 'package:Pilipili/utils/font_utils.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoThemeData;
 import 'package:flutter/foundation.dart' show PlatformDispatcher;
 import 'package:material_ui/material_ui.dart';

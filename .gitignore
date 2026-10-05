@@ -150,3 +150,10 @@ pili_release.json
 dist
 
 test*
+!test/
+!test/services/
+!test/services/touch_diagnostics_test.dart
+!test/services/*_test.dart
+!tool/tests/
+!tool/tests/CMakeLists.txt
+!tool/tests/windows_touch_input_test.cpp

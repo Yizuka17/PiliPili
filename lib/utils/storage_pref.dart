@@ -1,46 +1,46 @@
 import 'dart:io';
 
-import 'package:PiliPlus/common/widgets/gesture/horizontal_drag_gesture_recognizer.dart'
+import 'package:Pilipili/common/widgets/gesture/horizontal_drag_gesture_recognizer.dart'
     show deviceTouchSlop;
-import 'package:PiliPlus/common/widgets/pair.dart';
-import 'package:PiliPlus/http/constants.dart';
-import 'package:PiliPlus/models/common/bar_hide_type.dart';
-import 'package:PiliPlus/models/common/dynamic/dynamic_badge_mode.dart';
-import 'package:PiliPlus/models/common/dynamic/dynamics_type.dart';
-import 'package:PiliPlus/models/common/dynamic/up_panel_position.dart';
-import 'package:PiliPlus/models/common/follow_order_type.dart';
-import 'package:PiliPlus/models/common/member/tab_type.dart';
-import 'package:PiliPlus/models/common/msg/msg_unread_type.dart';
-import 'package:PiliPlus/models/common/nav_bar_config.dart';
-import 'package:PiliPlus/models/common/reply/reply_sort_type.dart';
-import 'package:PiliPlus/models/common/sponsor_block/segment_type.dart';
-import 'package:PiliPlus/models/common/sponsor_block/skip_type.dart';
-import 'package:PiliPlus/models/common/super_chat_type.dart';
-import 'package:PiliPlus/models/common/super_resolution_type.dart';
-import 'package:PiliPlus/models/common/theme/theme_type.dart';
-import 'package:PiliPlus/models/common/video/audio_quality.dart';
-import 'package:PiliPlus/models/common/video/cdn_type.dart';
-import 'package:PiliPlus/models/common/video/live_quality.dart';
-import 'package:PiliPlus/models/common/video/subtitle_pref_type.dart';
-import 'package:PiliPlus/models/common/video/video_decode_type.dart';
-import 'package:PiliPlus/models/common/video/video_quality.dart';
-import 'package:PiliPlus/models/user/danmaku_rule.dart';
-import 'package:PiliPlus/models/user/info.dart';
-import 'package:PiliPlus/pages/setting/pages/fullscreen_sc_size.dart'
+import 'package:Pilipili/common/widgets/pair.dart';
+import 'package:Pilipili/http/constants.dart';
+import 'package:Pilipili/models/common/bar_hide_type.dart';
+import 'package:Pilipili/models/common/dynamic/dynamic_badge_mode.dart';
+import 'package:Pilipili/models/common/dynamic/dynamics_type.dart';
+import 'package:Pilipili/models/common/dynamic/up_panel_position.dart';
+import 'package:Pilipili/models/common/follow_order_type.dart';
+import 'package:Pilipili/models/common/member/tab_type.dart';
+import 'package:Pilipili/models/common/msg/msg_unread_type.dart';
+import 'package:Pilipili/models/common/nav_bar_config.dart';
+import 'package:Pilipili/models/common/reply/reply_sort_type.dart';
+import 'package:Pilipili/models/common/sponsor_block/segment_type.dart';
+import 'package:Pilipili/models/common/sponsor_block/skip_type.dart';
+import 'package:Pilipili/models/common/super_chat_type.dart';
+import 'package:Pilipili/models/common/super_resolution_type.dart';
+import 'package:Pilipili/models/common/theme/theme_type.dart';
+import 'package:Pilipili/models/common/video/audio_quality.dart';
+import 'package:Pilipili/models/common/video/cdn_type.dart';
+import 'package:Pilipili/models/common/video/live_quality.dart';
+import 'package:Pilipili/models/common/video/subtitle_pref_type.dart';
+import 'package:Pilipili/models/common/video/video_decode_type.dart';
+import 'package:Pilipili/models/common/video/video_quality.dart';
+import 'package:Pilipili/models/user/danmaku_rule.dart';
+import 'package:Pilipili/models/user/info.dart';
+import 'package:Pilipili/pages/setting/pages/fullscreen_sc_size.dart'
     show kFullScreenSCWidth;
-import 'package:PiliPlus/plugin/pl_player/models/audio_output_type.dart';
-import 'package:PiliPlus/plugin/pl_player/models/bottom_progress_behavior.dart';
-import 'package:PiliPlus/plugin/pl_player/models/fullscreen_mode.dart';
-import 'package:PiliPlus/plugin/pl_player/models/hwdec_type.dart';
-import 'package:PiliPlus/plugin/pl_player/models/play_repeat.dart';
-import 'package:PiliPlus/utils/device_utils.dart';
-import 'package:PiliPlus/utils/extension/iterable_ext.dart';
-import 'package:PiliPlus/utils/global_data.dart';
-import 'package:PiliPlus/utils/login_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
-import 'package:PiliPlus/utils/storage.dart';
-import 'package:PiliPlus/utils/storage_key.dart';
-import 'package:PiliPlus/utils/utils.dart';
+import 'package:Pilipili/plugin/pl_player/models/audio_output_type.dart';
+import 'package:Pilipili/plugin/pl_player/models/bottom_progress_behavior.dart';
+import 'package:Pilipili/plugin/pl_player/models/fullscreen_mode.dart';
+import 'package:Pilipili/plugin/pl_player/models/hwdec_type.dart';
+import 'package:Pilipili/plugin/pl_player/models/play_repeat.dart';
+import 'package:Pilipili/utils/device_utils.dart';
+import 'package:Pilipili/utils/extension/iterable_ext.dart';
+import 'package:Pilipili/utils/global_data.dart';
+import 'package:Pilipili/utils/login_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/storage.dart';
+import 'package:Pilipili/utils/storage_key.dart';
+import 'package:Pilipili/utils/utils.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flex_seed_scheme/flex_seed_scheme.dart' show FlexSchemeVariant;
 import 'package:flutter/foundation.dart';
@@ -636,6 +636,9 @@ abstract final class Pref {
 
   static bool get enableLog =>
       _setting.get(SettingBoxKey.enableLog, defaultValue: true);
+
+  static String? get errorLogDirectory =>
+      _setting.get(SettingBoxKey.errorLogDirectory);
 
   static bool get disableAudioCDN =>
       _setting.get(SettingBoxKey.disableAudioCDN, defaultValue: false);

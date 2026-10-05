@@ -1,26 +1,26 @@
 import 'dart:io' show Platform;
 import 'dart:math' as math;
 
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/draggable_sheet/dyn.dart';
-import 'package:PiliPlus/common/widgets/marquee.dart';
-import 'package:PiliPlus/models/common/video/live_quality.dart';
-import 'package:PiliPlus/pages/live_room/controller.dart';
-import 'package:PiliPlus/pages/setting/models/play_settings.dart'
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/draggable_sheet/dyn.dart';
+import 'package:Pilipili/common/widgets/marquee.dart';
+import 'package:Pilipili/models/common/video/live_quality.dart';
+import 'package:Pilipili/pages/live_room/controller.dart';
+import 'package:Pilipili/pages/setting/models/play_settings.dart'
     show showPlayerVolumeDialog;
-import 'package:PiliPlus/pages/video/widgets/header_control.dart';
-import 'package:PiliPlus/plugin/pl_player/controller.dart';
-import 'package:PiliPlus/plugin/pl_player/widgets/common_btn.dart';
-import 'package:PiliPlus/services/shutdown_timer_service.dart'
+import 'package:Pilipili/pages/video/widgets/header_control.dart';
+import 'package:Pilipili/plugin/pl_player/controller.dart';
+import 'package:Pilipili/plugin/pl_player/widgets/common_btn.dart';
+import 'package:Pilipili/services/shutdown_timer_service.dart'
     show shutdownTimerService;
-import 'package:PiliPlus/utils/android/bindings.g.dart';
-import 'package:PiliPlus/utils/extension/context_ext.dart';
-import 'package:PiliPlus/utils/extension/size_ext.dart';
-import 'package:PiliPlus/utils/extension/string_ext.dart';
-import 'package:PiliPlus/utils/ios/pip_helper.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
-import 'package:PiliPlus/utils/storage.dart';
-import 'package:PiliPlus/utils/storage_key.dart';
+import 'package:Pilipili/utils/android/bindings.g.dart';
+import 'package:Pilipili/utils/extension/context_ext.dart';
+import 'package:Pilipili/utils/extension/size_ext.dart';
+import 'package:Pilipili/utils/extension/string_ext.dart';
+import 'package:Pilipili/utils/ios/pip_helper.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/storage.dart';
+import 'package:Pilipili/utils/storage_key.dart';
 import 'package:collection/collection.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';

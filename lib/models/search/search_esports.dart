@@ -1,4 +1,4 @@
-import 'package:PiliPlus/utils/parse_string.dart';
+import 'package:Pilipili/utils/parse_string.dart';
 
 class SearchEsports {
   List<EsportsContest> contest;

@@ -1,8 +1,8 @@
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/http/user.dart';
-import 'package:PiliPlus/models_new/coin_log/data.dart';
-import 'package:PiliPlus/models_new/coin_log/list.dart';
-import 'package:PiliPlus/pages/log_table/controller.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/http/user.dart';
+import 'package:Pilipili/models_new/coin_log/data.dart';
+import 'package:Pilipili/models_new/coin_log/list.dart';
+import 'package:Pilipili/pages/log_table/controller.dart';
 
 class CoinLogController extends LogController<CoinLogData, CoinLogItem> {
   @override

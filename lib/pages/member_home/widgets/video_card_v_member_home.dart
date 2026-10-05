@@ -1,16 +1,16 @@
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/badge.dart';
-import 'package:PiliPlus/common/widgets/image/image_save.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/http/search.dart';
-import 'package:PiliPlus/models/common/badge_type.dart';
-import 'package:PiliPlus/models_new/space/space_archive/item.dart';
-import 'package:PiliPlus/models_new/video/video_detail/dimension.dart';
-import 'package:PiliPlus/utils/app_scheme.dart';
-import 'package:PiliPlus/utils/duration_utils.dart';
-import 'package:PiliPlus/utils/id_utils.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/badge.dart';
+import 'package:Pilipili/common/widgets/image/image_save.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/http/search.dart';
+import 'package:Pilipili/models/common/badge_type.dart';
+import 'package:Pilipili/models_new/space/space_archive/item.dart';
+import 'package:Pilipili/models_new/video/video_detail/dimension.dart';
+import 'package:Pilipili/utils/app_scheme.dart';
+import 'package:Pilipili/utils/duration_utils.dart';
+import 'package:Pilipili/utils/id_utils.dart';
+import 'package:Pilipili/utils/page_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
 import 'package:material_ui/material_ui.dart';
 
 // 视频卡片 - 垂直布局

@@ -1,7 +1,7 @@
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/models/search/result.dart';
-import 'package:PiliPlus/models/search/search_esports.dart';
-import 'package:PiliPlus/pages/search_panel/video/controller.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/models/search/result.dart';
+import 'package:Pilipili/models/search/search_esports.dart';
+import 'package:Pilipili/pages/search_panel/video/controller.dart';
 
 class SearchAllController extends SearchVideoController with SearchVideoMixin {
   SearchAllController({

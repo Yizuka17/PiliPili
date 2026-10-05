@@ -17,19 +17,15 @@ WizardStyle=modern
 PrivilegesRequired={{PRIVILEGES_REQUIRED}}
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
+CloseApplications=yes
+CloseApplicationsFilter=piliplus.exe,pilipili.exe
+RestartApplications=no
 
-[Code]
-procedure KillOldProcess;
-var ResultCode: Integer;
-begin
-  Exec('taskkill', '/F /IM {{EXECUTABLE_NAME}}', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-end;
-
-function InitializeSetup(): Boolean;
-begin
-  KillOldProcess;
-  Result := True;
-end;
+[InstallDelete]
+Type: files; Name: "{app}\piliplus.exe"
+Type: files; Name: "{autoprograms}\PiliPlus.lnk"
+Type: files; Name: "{autodesktop}\PiliPlus.lnk"
+Type: files; Name: "{userstartup}\PiliPlus.lnk"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

@@ -1,9 +1,9 @@
-import 'package:PiliPlus/common/widgets/scaffold/simple_scaffold.dart';
-import 'package:PiliPlus/common/widgets/scroll_physics.dart' show tabBarView;
-import 'package:PiliPlus/common/widgets/view_safe_area.dart';
-import 'package:PiliPlus/pages/member_search/child/view.dart';
-import 'package:PiliPlus/pages/member_search/controller.dart';
-import 'package:PiliPlus/utils/utils.dart';
+import 'package:Pilipili/common/widgets/scaffold/simple_scaffold.dart';
+import 'package:Pilipili/common/widgets/scroll_physics.dart' show tabBarView;
+import 'package:Pilipili/common/widgets/view_safe_area.dart';
+import 'package:Pilipili/pages/member_search/child/view.dart';
+import 'package:Pilipili/pages/member_search/controller.dart';
+import 'package:Pilipili/utils/utils.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 

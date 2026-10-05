@@ -1,8 +1,8 @@
-import 'package:PiliPlus/common/widgets/gesture/tap_gesture_recognizer.dart';
-import 'package:PiliPlus/models_new/video/video_ai_conclusion/model_result.dart';
-import 'package:PiliPlus/pages/common/slide/common_slide_page.dart';
-import 'package:PiliPlus/pages/video/controller.dart';
-import 'package:PiliPlus/utils/duration_utils.dart';
+import 'package:Pilipili/common/widgets/gesture/tap_gesture_recognizer.dart';
+import 'package:Pilipili/models_new/video/video_ai_conclusion/model_result.dart';
+import 'package:Pilipili/pages/common/slide/common_slide_page.dart';
+import 'package:Pilipili/pages/video/controller.dart';
+import 'package:Pilipili/utils/duration_utils.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 

@@ -1,13 +1,13 @@
-import 'package:PiliPlus/common/widgets/button/icon_button.dart';
-import 'package:PiliPlus/common/widgets/dialog/dialog.dart';
-import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart';
-import 'package:PiliPlus/common/widgets/loading_widget/http_error.dart';
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/models_new/fav/fav_note/list.dart';
-import 'package:PiliPlus/pages/fav/note/controller.dart';
-import 'package:PiliPlus/pages/fav/note/widget/item.dart';
-import 'package:PiliPlus/pages/fav/pgc/pgc_layout.dart';
-import 'package:PiliPlus/utils/grid.dart';
+import 'package:Pilipili/common/widgets/button/icon_button.dart';
+import 'package:Pilipili/common/widgets/dialog/dialog.dart';
+import 'package:Pilipili/common/widgets/flutter/refresh_indicator.dart';
+import 'package:Pilipili/common/widgets/loading_widget/http_error.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/models_new/fav/fav_note/list.dart';
+import 'package:Pilipili/pages/fav/note/controller.dart';
+import 'package:Pilipili/pages/fav/note/widget/item.dart';
+import 'package:Pilipili/pages/fav/pgc/pgc_layout.dart';
+import 'package:Pilipili/utils/grid.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 

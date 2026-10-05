@@ -2,8 +2,30 @@ param(
     [string]$platform = ""
 )
 
-git config --global user.name "ci"
-git config --global user.email "example@example.com"
+$configuredFlutter = (Get-Content (Join-Path $PSScriptRoot '../../.fvmrc') -Raw | ConvertFrom-Json).flutter
+
+function Apply-ProjectPatch([string]$PatchPath) {
+    if ($env:PILI_FLUTTER_BETA_PATCHES -eq '1' -or $configuredFlutter -eq '3.49.0-0.2.pre') {
+        $betaPatch = Join-Path $env:GITHUB_WORKSPACE ('lib/scripts/beta/' + (Split-Path $PatchPath -Leaf))
+        if (Test-Path -LiteralPath $betaPatch) { $PatchPath = $betaPatch }
+    }
+    # Packages in an in-repository PUB_CACHE must not inherit the app's Git
+    # root: git apply otherwise silently skips paths outside its current prefix.
+    $previousCeiling = $env:GIT_CEILING_DIRECTORIES
+    try {
+        $env:GIT_CEILING_DIRECTORIES = (Split-Path (Get-Location).Path -Parent).Replace('\', '/')
+        git apply --reverse --check $PatchPath 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "$PatchPath already applied"
+            return
+        }
+        git apply $PatchPath
+        if ($LASTEXITCODE -ne 0) { throw "Patch failed: $PatchPath" }
+        Write-Host "$PatchPath applied"
+    } finally {
+        $env:GIT_CEILING_DIRECTORIES = $previousCeiling
+    }
+}
 
 # TODO: remove
 # https://github.com/flutter/flutter/issues/182281
@@ -14,7 +36,7 @@ $BottomSheetAndroidPatch = "lib/scripts/bottom_sheet_android.patch"
 
 # https://github.com/bggRGjQaUbCoE/PiliPlus/issues/1906
 $BottomSheetIOSFlutterPatch = "lib/scripts/bottom_sheet_ios_flutter.patch"
-$BottomSheetIOSPiliPlusPatch = "lib/scripts/bottom_sheet_ios_piliplus.patch"
+$BottomSheetIOSPilipiliPatch = "lib/scripts/bottom_sheet_ios_piliplus.patch"
 
 # https://github.com/bggRGjQaUbCoE/PiliPlus/issues/1662
 # handle bottom scroll event
@@ -104,9 +126,9 @@ $GeetestIOSPatch = "lib/scripts/geetest_ios.patch"
 $DoubleTapGesturePatch = "lib/scripts/double_tap_gesture.patch"
 
 if ($platform.ToLower() -eq "ios") {
-    git apply $BottomSheetIOSPiliPlusPatch
+    git apply $BottomSheetIOSPilipiliPatch
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "$BottomSheetIOSPiliPlusPatch applied"
+        Write-Host "$BottomSheetIOSPilipiliPatch applied"
     } else {
         throw "$LASTEXITCODE"
     }
@@ -179,12 +201,7 @@ foreach ($revert in $reverts) {
 }
 
 foreach ($patch in $patches) {
-    git apply "$env:GITHUB_WORKSPACE/$patch"
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "$patch applied"
-    } else {
-        throw "$LASTEXITCODE"
-    }
+    Apply-ProjectPatch "$env:GITHUB_WORKSPACE/$patch"
 }
 
 Set-Location $env:GITHUB_WORKSPACE
@@ -213,7 +230,7 @@ $patches_material = @($ModalBarrierPatchMaterial, $NavigationDrawerPatchMaterial
                     $FABPatchMaterial, $TextFieldPatchMaterial, $ScaffoldPatchMaterial, $RefreshIndicatorPatchMaterial,
                     $TabsPatchMaterial)
 
-$PubCacheDir = "~/.pub-cache"
+$PubCacheDir = if ($env:PUB_CACHE) { $env:PUB_CACHE } else { "~/.pub-cache" }
 
 switch ($platform.ToLower()) {
     "android" {
@@ -227,23 +244,15 @@ switch ($platform.ToLower()) {
     "macos" {
     }
     "windows" {
-        $PubCacheDir = "$env:LOCALAPPDATA/Pub/Cache"
+        if (-not $env:PUB_CACHE) {
+            $PubCacheDir = "$env:LOCALAPPDATA/Pub/Cache"
+        }
     }
     default {}
 }
 
-try {
-    $MaterialUiDir = Get-ChildItem "$PubCacheDir/hosted/pub.dev" -Directory |
-        Where-Object { $_.Name -like "material_ui-*" } |
-        Select-Object -Last 1
-
-    if ($MaterialUiDir) {
-        Remove-Item -Path $MaterialUiDir.FullName -Recurse -Force
-    }
-} catch {
-}
-
 flutter pub get
+if ($LASTEXITCODE -ne 0) { throw 'flutter pub get failed' }
 
 $MaterialUiDir = Get-ChildItem "$PubCacheDir/hosted/pub.dev" -Directory |
     Where-Object { $_.Name -like "material_ui-*" } |
@@ -263,12 +272,7 @@ Get-ChildItem -Path "$env:GITHUB_WORKSPACE/lib/scripts/material" -Filter *.patch
 cd $MaterialUiDir.FullName
 
 foreach ($patch in $patches_material) {
-    git apply "$env:GITHUB_WORKSPACE/$patch"
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "$patch applied"
-    } else {
-        throw "$LASTEXITCODE"
-    }
+    Apply-ProjectPatch "$env:GITHUB_WORKSPACE/$patch"
 }
 
 $BottomSheetIOSFlutterPatchCupertino = "lib/scripts/cupertino/bottom_sheet_ios_flutter.patch"
@@ -308,10 +312,5 @@ Get-ChildItem -Path "$env:GITHUB_WORKSPACE/lib/scripts/cupertino" -Filter *.patc
 cd $CupertinoUiDir.FullName
 
 foreach ($patch in $patches_cupertino) {
-    git apply "$env:GITHUB_WORKSPACE/$patch"
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "$patch applied"
-    } else {
-        throw "$LASTEXITCODE"
-    }
+    Apply-ProjectPatch "$env:GITHUB_WORKSPACE/$patch"
 }

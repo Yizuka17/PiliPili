@@ -13,6 +13,12 @@ String get defDownloadPath =>
     path.join(appSupportDirPath, PathUtils.downloadDir);
 
 abstract final class PathUtils {
+  /// ProductName changed, but the established Windows data identity stays.
+  static String applicationSupportPath(
+    String directory, {
+    required bool windows,
+  }) => windows ? path.join(path.dirname(directory), 'piliplus') : directory;
+
   static const videoNameType1 = '0.mp4';
   static const _fileExt = '.m4s';
   static const audioNameType2 = 'audio$_fileExt';

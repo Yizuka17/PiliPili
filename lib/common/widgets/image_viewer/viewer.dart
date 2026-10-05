@@ -1,26 +1,26 @@
 /*
- * This file is part of PiliPlus
+ * This file is part of Pilipili
  *
- * PiliPlus is free software: you can redistribute it and/or modify
+ * Pilipili is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * PiliPlus is distributed in the hope that it will be useful,
+ * Pilipili is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with PiliPlus.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Pilipili.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import 'dart:math' as math;
 
-import 'package:PiliPlus/common/widgets/gesture/horizontal_drag_gesture_recognizer.dart'
+import 'package:Pilipili/common/widgets/gesture/horizontal_drag_gesture_recognizer.dart'
     show touchSlopH;
-import 'package:PiliPlus/common/widgets/gesture/image_horizontal_drag_gesture_recognizer.dart';
-import 'package:PiliPlus/utils/extension/num_ext.dart';
+import 'package:Pilipili/common/widgets/gesture/image_horizontal_drag_gesture_recognizer.dart';
+import 'package:Pilipili/utils/extension/num_ext.dart';
 import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/gestures.dart'
     show

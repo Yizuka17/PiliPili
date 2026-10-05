@@ -1,6 +1,6 @@
-import 'package:PiliPlus/models/common/account_type.dart';
-import 'package:PiliPlus/pages/setting/models/model.dart';
-import 'package:PiliPlus/utils/accounts/api_type.dart';
+import 'package:Pilipili/models/common/account_type.dart';
+import 'package:Pilipili/pages/setting/models/model.dart';
+import 'package:Pilipili/utils/accounts/api_type.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 

@@ -1,19 +1,19 @@
 // 内容
-import 'package:PiliPlus/common/widgets/custom_icon.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/common/widgets/image_grid/image_grid_view.dart';
-import 'package:PiliPlus/common/widgets/selection_text.dart';
-import 'package:PiliPlus/common/widgets/text_more/text_more.dart';
-import 'package:PiliPlus/models/dynamics/result.dart';
-import 'package:PiliPlus/pages/dynamics/widgets/rich_node_panel.dart';
-import 'package:PiliPlus/utils/extension/iterable_ext.dart';
-import 'package:PiliPlus/utils/extension/selectable_region_ext.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
+import 'package:Pilipili/common/widgets/custom_icon.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/common/widgets/image_grid/image_grid_view.dart';
+import 'package:Pilipili/common/widgets/selection_text.dart';
+import 'package:Pilipili/common/widgets/text_more/text_more.dart';
+import 'package:Pilipili/models/dynamics/result.dart';
+import 'package:Pilipili/pages/dynamics/widgets/rich_node_panel.dart';
+import 'package:Pilipili/utils/extension/iterable_ext.dart';
+import 'package:Pilipili/utils/extension/selectable_region_ext.dart';
+import 'package:Pilipili/utils/page_utils.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 
-part 'package:PiliPlus/common/widgets/context_menu/dyn_menu_helper.dart';
+part 'package:Pilipili/common/widgets/context_menu/dyn_menu_helper.dart';
 
 Widget content(
   BuildContext context, {

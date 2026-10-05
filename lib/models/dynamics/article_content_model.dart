@@ -1,8 +1,8 @@
-import 'package:PiliPlus/common/style.dart' as common_style;
-import 'package:PiliPlus/models/dynamics/result.dart';
-import 'package:PiliPlus/models/dynamics/vote_model.dart';
-import 'package:PiliPlus/utils/color_utils.dart';
-import 'package:PiliPlus/utils/parse_int.dart';
+import 'package:Pilipili/common/style.dart' as common_style;
+import 'package:Pilipili/models/dynamics/result.dart';
+import 'package:Pilipili/models/dynamics/vote_model.dart';
+import 'package:Pilipili/utils/color_utils.dart';
+import 'package:Pilipili/utils/parse_int.dart';
 
 class ArticleContentModel {
   int? align;

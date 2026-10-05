@@ -1,12 +1,12 @@
 import 'dart:async';
 
-import 'package:PiliPlus/common/assets.dart';
-import 'package:PiliPlus/models_new/video/video_detail/data.dart';
-import 'package:PiliPlus/models_new/video/video_detail/episode.dart';
-import 'package:PiliPlus/models_new/video/video_detail/section.dart';
-import 'package:PiliPlus/pages/video/controller.dart';
-import 'package:PiliPlus/pages/video/introduction/ugc/controller.dart';
-import 'package:PiliPlus/utils/extension/num_ext.dart';
+import 'package:Pilipili/common/assets.dart';
+import 'package:Pilipili/models_new/video/video_detail/data.dart';
+import 'package:Pilipili/models_new/video/video_detail/episode.dart';
+import 'package:Pilipili/models_new/video/video_detail/section.dart';
+import 'package:Pilipili/pages/video/controller.dart';
+import 'package:Pilipili/pages/video/introduction/ugc/controller.dart';
+import 'package:Pilipili/utils/extension/num_ext.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 

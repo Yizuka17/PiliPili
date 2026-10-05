@@ -1,4 +1,4 @@
-import 'package:PiliPlus/models_new/fav/fav_pgc/list.dart';
+import 'package:Pilipili/models_new/fav/fav_pgc/list.dart';
 
 class FavPgcData {
   List<FavPgcItemModel>? list;

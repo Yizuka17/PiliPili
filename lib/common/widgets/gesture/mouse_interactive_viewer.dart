@@ -5,6 +5,7 @@
 import 'dart:io' show Platform;
 import 'dart:math' as math;
 
+import 'package:Pilipili/services/touch_diagnostics.dart';
 import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
@@ -283,6 +284,11 @@ class _MouseInteractiveViewerState extends State<MouseInteractiveViewer>
   // Handle the start of a gesture. All of pan, scale, and rotate are handled
   // with GestureDetector's scale gesture.
   void _onScaleStart(ScaleStartDetails details) {
+    TouchDiagnostics.record('playerScaleStart', {
+      'pointerCount': details.pointerCount,
+      'focalPoint': [details.localFocalPoint.dx, details.localFocalPoint.dy],
+      'singlePointer': details.pointerCount == 1,
+    });
     if (_isSinglePointer = details.pointerCount == 1) {
       widget.onPanStart(details);
       return;
@@ -313,6 +319,13 @@ class _MouseInteractiveViewerState extends State<MouseInteractiveViewer>
   // Handle an update to an ongoing gesture. All of pan, scale, and rotate are
   // handled with GestureDetector's scale gesture.
   void _onScaleUpdate(ScaleUpdateDetails details) {
+    TouchDiagnostics.record('playerScaleUpdate', {
+      'pointerCount': details.pointerCount,
+      'singlePointer': _isSinglePointer,
+      'scale': details.scale,
+      'focalPoint': [details.localFocalPoint.dx, details.localFocalPoint.dy],
+      'delta': [details.focalPointDelta.dx, details.focalPointDelta.dy],
+    });
     if (_isSinglePointer) {
       widget.onPanUpdate(details);
       return;
@@ -407,6 +420,10 @@ class _MouseInteractiveViewerState extends State<MouseInteractiveViewer>
   // Handle the end of a gesture of _GestureType. All of pan, scale, and rotate
   // are handled with GestureDetector's scale gesture.
   void _onScaleEnd(ScaleEndDetails details) {
+    TouchDiagnostics.record('playerScaleEnd', {
+      'pointerCount': details.pointerCount,
+      'singlePointer': _isSinglePointer,
+    });
     if (_isSinglePointer) {
       widget.onPanEnd(details);
       return;

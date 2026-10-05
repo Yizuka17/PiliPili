@@ -1,16 +1,16 @@
 import 'dart:async';
 
-import 'package:PiliPlus/common/widgets/flutter/refresh_indicator.dart';
-import 'package:PiliPlus/common/widgets/loading_widget/http_error.dart';
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/models/common/dynamic/dynamics_type.dart';
-import 'package:PiliPlus/models/dynamics/result.dart';
-import 'package:PiliPlus/pages/dynamics/controller.dart';
-import 'package:PiliPlus/pages/dynamics/widgets/dynamic_panel.dart';
-import 'package:PiliPlus/pages/dynamics_tab/controller.dart';
-import 'package:PiliPlus/utils/extension/get_ext.dart';
-import 'package:PiliPlus/utils/global_data.dart';
-import 'package:PiliPlus/utils/waterfall.dart';
+import 'package:Pilipili/common/widgets/flutter/refresh_indicator.dart';
+import 'package:Pilipili/common/widgets/loading_widget/http_error.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/models/common/dynamic/dynamics_type.dart';
+import 'package:Pilipili/models/dynamics/result.dart';
+import 'package:Pilipili/pages/dynamics/controller.dart';
+import 'package:Pilipili/pages/dynamics/widgets/dynamic_panel.dart';
+import 'package:Pilipili/pages/dynamics_tab/controller.dart';
+import 'package:Pilipili/utils/extension/get_ext.dart';
+import 'package:Pilipili/utils/global_data.dart';
+import 'package:Pilipili/utils/waterfall.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:waterfall_flow/waterfall_flow.dart'

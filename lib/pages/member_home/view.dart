@@ -1,26 +1,26 @@
 import 'dart:math';
 
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/button/more_btn.dart';
-import 'package:PiliPlus/common/widgets/loading_widget/loading_widget.dart';
-import 'package:PiliPlus/common/widgets/scroll_physics.dart'
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/button/more_btn.dart';
+import 'package:Pilipili/common/widgets/loading_widget/loading_widget.dart';
+import 'package:Pilipili/common/widgets/scroll_physics.dart'
     show platformAlwaysClampingPhysics;
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/models_new/space/space/data.dart';
-import 'package:PiliPlus/models_new/space/space/tab2.dart';
-import 'package:PiliPlus/pages/member/controller.dart';
-import 'package:PiliPlus/pages/member_article/widget/item.dart';
-import 'package:PiliPlus/pages/member_audio/widgets/item.dart';
-import 'package:PiliPlus/pages/member_coin_arc/view.dart';
-import 'package:PiliPlus/pages/member_comic/widgets/item.dart';
-import 'package:PiliPlus/pages/member_contribute/controller.dart';
-import 'package:PiliPlus/pages/member_home/widgets/fav_item.dart';
-import 'package:PiliPlus/pages/member_home/widgets/video_card_v_member_home.dart';
-import 'package:PiliPlus/pages/member_like_arc/view.dart';
-import 'package:PiliPlus/pages/member_pgc/widgets/pgc_card_v_member_pgc.dart';
-import 'package:PiliPlus/utils/extension/context_ext.dart';
-import 'package:PiliPlus/utils/grid.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/models_new/space/space/data.dart';
+import 'package:Pilipili/models_new/space/space/tab2.dart';
+import 'package:Pilipili/pages/member/controller.dart';
+import 'package:Pilipili/pages/member_article/widget/item.dart';
+import 'package:Pilipili/pages/member_audio/widgets/item.dart';
+import 'package:Pilipili/pages/member_coin_arc/view.dart';
+import 'package:Pilipili/pages/member_comic/widgets/item.dart';
+import 'package:Pilipili/pages/member_contribute/controller.dart';
+import 'package:Pilipili/pages/member_home/widgets/fav_item.dart';
+import 'package:Pilipili/pages/member_home/widgets/video_card_v_member_home.dart';
+import 'package:Pilipili/pages/member_like_arc/view.dart';
+import 'package:Pilipili/pages/member_pgc/widgets/pgc_card_v_member_pgc.dart';
+import 'package:Pilipili/utils/extension/context_ext.dart';
+import 'package:Pilipili/utils/grid.dart';
+import 'package:Pilipili/utils/page_utils.dart';
 import 'package:flutter/rendering.dart'
     show BoxHitTestEntry, BoxHitTestResult, RenderObjectWithChildMixin;
 import 'package:flutter/services.dart'
@@ -32,7 +32,7 @@ import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 
-part 'package:PiliPlus/pages/member_home/widgets/live_item.dart';
+part 'package:Pilipili/pages/member_home/widgets/live_item.dart';
 
 class MemberHome extends StatefulWidget {
   const MemberHome({super.key, this.heroTag});

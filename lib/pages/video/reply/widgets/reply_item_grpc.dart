@@ -1,55 +1,57 @@
 import 'dart:math';
 
-import 'package:PiliPlus/common/assets.dart';
-import 'package:PiliPlus/common/constants.dart';
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/badge.dart';
-import 'package:PiliPlus/common/widgets/custom_icon.dart';
-import 'package:PiliPlus/common/widgets/dialog/dialog.dart';
-import 'package:PiliPlus/common/widgets/dialog/report.dart';
-import 'package:PiliPlus/common/widgets/emote_tooltip.dart';
-import 'package:PiliPlus/common/widgets/gesture/tap_gesture_recognizer.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/common/widgets/image_grid/image_grid_view.dart';
-import 'package:PiliPlus/common/widgets/pendant_avatar.dart';
-import 'package:PiliPlus/common/widgets/text_ellipsis/text_ellipsis.dart';
-import 'package:PiliPlus/common/widgets/text_more/text_more.dart';
-import 'package:PiliPlus/common/widgets/translucent_row.dart';
-import 'package:PiliPlus/grpc/bilibili/main/community/reply/v1.pb.dart'
+import 'package:Pilipili/common/assets.dart';
+import 'package:Pilipili/common/constants.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/badge.dart';
+import 'package:Pilipili/common/widgets/custom_icon.dart';
+import 'package:Pilipili/common/widgets/dialog/dialog.dart';
+import 'package:Pilipili/common/widgets/dialog/report.dart';
+import 'package:Pilipili/common/widgets/emote_tooltip.dart';
+import 'package:Pilipili/common/widgets/gesture/tap_gesture_recognizer.dart';
+import 'package:Pilipili/common/widgets/gesture/touch_diagnostic_ink_well.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/common/widgets/image_grid/image_grid_view.dart';
+import 'package:Pilipili/common/widgets/pendant_avatar.dart';
+import 'package:Pilipili/common/widgets/text_ellipsis/text_ellipsis.dart';
+import 'package:Pilipili/common/widgets/text_more/text_more.dart';
+import 'package:Pilipili/common/widgets/translucent_row.dart';
+import 'package:Pilipili/grpc/bilibili/main/community/reply/v1.pb.dart'
     show ReplyInfo, ReplyControl, Content, Url, ReplyControl_VoteOption, Emote;
-import 'package:PiliPlus/grpc/reply.dart';
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/http/reply.dart';
-import 'package:PiliPlus/http/video.dart';
-import 'package:PiliPlus/pages/dynamics/widgets/vote.dart';
-import 'package:PiliPlus/pages/member/widget/medal_widget.dart';
-import 'package:PiliPlus/pages/save_panel/view.dart';
-import 'package:PiliPlus/pages/video/controller.dart';
-import 'package:PiliPlus/pages/video/reply/widgets/zan_grpc.dart';
-import 'package:PiliPlus/utils/accounts.dart';
-import 'package:PiliPlus/utils/app_scheme.dart';
-import 'package:PiliPlus/utils/bili_utils.dart';
-import 'package:PiliPlus/utils/color_utils.dart';
-import 'package:PiliPlus/utils/danmaku_utils.dart';
-import 'package:PiliPlus/utils/date_utils.dart';
-import 'package:PiliPlus/utils/duration_utils.dart';
-import 'package:PiliPlus/utils/extension/context_ext.dart';
-import 'package:PiliPlus/utils/extension/iterable_ext.dart';
-import 'package:PiliPlus/utils/extension/num_ext.dart';
-import 'package:PiliPlus/utils/extension/selectable_region_ext.dart';
-import 'package:PiliPlus/utils/extension/string_ext.dart';
-import 'package:PiliPlus/utils/extension/theme_ext.dart';
-import 'package:PiliPlus/utils/feed_back.dart';
-import 'package:PiliPlus/utils/global_data.dart';
-import 'package:PiliPlus/utils/image_utils.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
-import 'package:PiliPlus/utils/storage.dart';
-import 'package:PiliPlus/utils/storage_key.dart';
-import 'package:PiliPlus/utils/storage_pref.dart';
-import 'package:PiliPlus/utils/theme_utils.dart';
-import 'package:PiliPlus/utils/url_utils.dart';
-import 'package:PiliPlus/utils/utils.dart';
+import 'package:Pilipili/grpc/reply.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/http/reply.dart';
+import 'package:Pilipili/http/video.dart';
+import 'package:Pilipili/pages/dynamics/widgets/vote.dart';
+import 'package:Pilipili/pages/member/widget/medal_widget.dart';
+import 'package:Pilipili/pages/save_panel/view.dart';
+import 'package:Pilipili/pages/video/controller.dart';
+import 'package:Pilipili/pages/video/reply/widgets/zan_grpc.dart';
+import 'package:Pilipili/services/touch_diagnostics.dart';
+import 'package:Pilipili/utils/accounts.dart';
+import 'package:Pilipili/utils/app_scheme.dart';
+import 'package:Pilipili/utils/bili_utils.dart';
+import 'package:Pilipili/utils/color_utils.dart';
+import 'package:Pilipili/utils/danmaku_utils.dart';
+import 'package:Pilipili/utils/date_utils.dart';
+import 'package:Pilipili/utils/duration_utils.dart';
+import 'package:Pilipili/utils/extension/context_ext.dart';
+import 'package:Pilipili/utils/extension/iterable_ext.dart';
+import 'package:Pilipili/utils/extension/num_ext.dart';
+import 'package:Pilipili/utils/extension/selectable_region_ext.dart';
+import 'package:Pilipili/utils/extension/string_ext.dart';
+import 'package:Pilipili/utils/extension/theme_ext.dart';
+import 'package:Pilipili/utils/feed_back.dart';
+import 'package:Pilipili/utils/global_data.dart';
+import 'package:Pilipili/utils/image_utils.dart';
+import 'package:Pilipili/utils/page_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/storage.dart';
+import 'package:Pilipili/utils/storage_key.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
+import 'package:Pilipili/utils/theme_utils.dart';
+import 'package:Pilipili/utils/url_utils.dart';
+import 'package:Pilipili/utils/utils.dart';
 import 'package:cached_network_image_ce/cached_network_image.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:fixnum/fixnum.dart';
@@ -59,7 +61,7 @@ import 'package:get/get.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:protobuf/protobuf.dart';
 
-part 'package:PiliPlus/common/widgets/context_menu/reply_menu_helper.dart';
+part 'package:Pilipili/common/widgets/context_menu/reply_menu_helper.dart';
 
 class ReplyItemGrpc extends StatelessWidget {
   const ReplyItemGrpc({
@@ -101,22 +103,27 @@ class ReplyItemGrpc extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
 
-    void showMore() => showModalBottomSheet(
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      constraints: BoxConstraints(
-        maxWidth: min(640, context.mediaQueryShortestSide),
-      ),
-      builder: (context) {
-        return morePanel(
-          context: context,
-          item: replyItem,
-          onDelete: () => onDelete?.call(replyItem, null),
-          isSubReply: false,
-        );
-      },
-    );
+    void showMore() {
+      TouchDiagnostics.record('replyMenuOpen', {'subReply': false});
+      showModalBottomSheet(
+        context: context,
+        useSafeArea: true,
+        isScrollControlled: true,
+        constraints: BoxConstraints(
+          maxWidth: min(640, context.mediaQueryShortestSide),
+        ),
+        builder: (context) {
+          return morePanel(
+            context: context,
+            item: replyItem,
+            onDelete: () => onDelete?.call(replyItem, null),
+            isSubReply: false,
+          );
+        },
+      ).whenComplete(
+        () => TouchDiagnostics.record('replyMenuClosed', {'subReply': false}),
+      );
+    }
 
     Widget child = Padding(
       padding: const .fromLTRB(12, 14, 8, 5),
@@ -138,7 +145,8 @@ class ReplyItemGrpc extends StatelessWidget {
     }
     return Material(
       type: MaterialType.transparency,
-      child: InkWell(
+      child: TouchDiagnosticInkWell(
+        scope: 'reply',
         onTap: () => replyReply?.call(replyItem, null),
         onLongPress: showMore,
         onSecondaryTap: PlatformUtils.isMobile ? null : showMore,
@@ -595,23 +603,32 @@ class ReplyItemGrpc extends StatelessWidget {
                     padding = const .fromLTRB(8, 4, 8, 4);
                   }
                 }
-                void showMore() => showModalBottomSheet(
-                  context: context,
-                  useSafeArea: true,
-                  isScrollControlled: true,
-                  constraints: BoxConstraints(
-                    maxWidth: min(640, context.mediaQueryShortestSide),
-                  ),
-                  builder: (context) {
-                    return morePanel(
-                      context: context,
-                      item: childReply,
-                      onDelete: () => onDelete?.call(replyItem, index),
-                      isSubReply: true,
-                    );
-                  },
-                );
-                return InkWell(
+                void showMore() {
+                  TouchDiagnostics.record('replyMenuOpen', {'subReply': true});
+                  showModalBottomSheet(
+                    context: context,
+                    useSafeArea: true,
+                    isScrollControlled: true,
+                    constraints: BoxConstraints(
+                      maxWidth: min(640, context.mediaQueryShortestSide),
+                    ),
+                    builder: (context) {
+                      return morePanel(
+                        context: context,
+                        item: childReply,
+                        onDelete: () => onDelete?.call(replyItem, index),
+                        isSubReply: true,
+                      );
+                    },
+                  ).whenComplete(
+                    () => TouchDiagnostics.record('replyMenuClosed', {
+                      'subReply': true,
+                    }),
+                  );
+                }
+
+                return TouchDiagnosticInkWell(
+                  scope: 'subReply',
                   borderRadius: borderRadius,
                   onTap: () =>
                       replyReply?.call(replyItem, childReply.id.toInt()),

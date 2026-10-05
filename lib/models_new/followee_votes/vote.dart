@@ -1,4 +1,4 @@
-import 'package:PiliPlus/models/model_owner.dart';
+import 'package:Pilipili/models/model_owner.dart';
 
 class FolloweeVote extends Owner {
   String _name;

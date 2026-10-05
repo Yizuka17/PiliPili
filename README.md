@@ -5,17 +5,19 @@
 
 
 <div align="center">
-    <h1>PiliPlus</h1>
+    <h1>Pilipili</h1>
 <div align="center">
 
 中文 | [English](README.en.md)
 
-![GitHub repo size](https://img.shields.io/github/repo-size/bggRGjQaUbCoE/PiliPlus) 
-![GitHub Repo stars](https://img.shields.io/github/stars/bggRGjQaUbCoE/PiliPlus) 
-![GitHub all releases](https://img.shields.io/github/downloads/bggRGjQaUbCoE/PiliPlus/total) 
+Pilipili 基于 PiliPlus 开发，保留原项目作者及贡献者的版权声明，遵循 GPL-3.0。
+
+![GitHub repo size](https://img.shields.io/github/repo-size/Yizuka17/PiliPili)
+![GitHub Repo stars](https://img.shields.io/github/stars/Yizuka17/PiliPili)
+![GitHub all releases](https://img.shields.io/github/downloads/Yizuka17/PiliPili/total)
 </div>
     <p>使用Flutter开发的BiliBili第三方客户端</p>
-    
+
 <img src="assets/screenshots/510shots_so.png" width="32%" alt="home" />
 <img src="assets/screenshots/174shots_so.png" width="32%" alt="home" />
 <img src="assets/screenshots/850shots_so.png" width="32%" alt="home" />
@@ -35,7 +37,6 @@
 - [x] Windows
 - [x] Linux
 
-[![Packaging status](https://repology.org/badge/vertical-allrepos/piliplus.svg)](https://repology.org/project/piliplus/versions)
 
 ## refactor
 
@@ -161,7 +162,7 @@
   - [x] 观看记录
   - [x] 我的收藏
   - [x] 站内私信
-  
+
 - [x] 动态相关
   - [x] 全部、投稿、番剧分类查看
   - [x] 动态评论查看
@@ -183,14 +184,14 @@
   - [x] 字幕
   - [x] 记忆播放
   - [x] 视频比例：高度/宽度适应、填充、包含等
-     
+
 - [x] 搜索相关
   - [x] 热搜
   - [x] 搜索历史
   - [x] 默认搜索词
   - [x] 投稿、番剧、直播间、用户搜索
   - [x] 视频搜索排序、按时长筛选
-    
+
 - [x] 视频详情页相关
   - [x] 视频选集(分p)切换
   - [x] 点赞、投币、收藏/取消收藏
@@ -202,7 +203,7 @@
   - [x] 评论笔记图片查看、保存
 
 - [x] 设置相关
-  - [x] 画质、音质、解码方式预设      
+  - [x] 画质、音质、解码方式预设
   - [x] 图片质量设定
   - [x] 主题模式：亮色/暗色/跟随系统
   - [x] 震动反馈(可选)
@@ -215,13 +216,13 @@
 
 ## 下载
 
-可以从 [Releases](https://github.com/bggRGjQaUbCoE/PiliPlus/releases) 下载，或克隆仓库拉取代码后在本地编译。
+可以从 [Releases](https://github.com/Yizuka17/PiliPili/releases) 下载，或克隆仓库拉取代码后在本地编译。
 
 <br/>
 
 ## 声明
 
-此项目（PiliPlus）是个人为了兴趣而开发，仅用于学习和测试，请于下载后24小时内删除。
+此项目（Pilipili）是个人为了兴趣而开发，仅用于学习和测试，请于下载后24小时内删除。
 所用API皆从官方网站收集，不提供任何破解内容。
 在此致敬原作者：[guozhigq/pilipala](https://github.com/guozhigq/pilipala)
 在此致敬上游作者：[orz12/PiliPalaX](https://github.com/orz12/PiliPalaX)
@@ -246,10 +247,10 @@
 
 ## Star History
 
-<a href="https://star-history.dera.page/#bggRGjQaUbCoE/PiliPlus&Date">
+<a href="https://star-history.dera.page/#Yizuka17/PiliPili&Date">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=bggRGjQaUbCoE/PiliPlus&type=Date&theme=dark" />
-   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=bggRGjQaUbCoE/PiliPlus&type=Date" />
-   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=bggRGjQaUbCoE/PiliPlus&type=Date" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://star-history.dera.page/svg?repos=Yizuka17/PiliPili&type=Date&theme=dark" />
+   <source media="(prefers-color-scheme: light)" srcset="https://star-history.dera.page/svg?repos=Yizuka17/PiliPili&type=Date" />
+   <img alt="Star History Chart" src="https://star-history.dera.page/svg?repos=Yizuka17/PiliPili&type=Date" />
  </picture>
 </a>

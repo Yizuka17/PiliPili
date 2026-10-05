@@ -1,10 +1,10 @@
-import 'package:PiliPlus/http/loading_state.dart';
-import 'package:PiliPlus/http/member.dart';
-import 'package:PiliPlus/models/common/member/archive_sort_type_app.dart';
-import 'package:PiliPlus/models/common/member/web_ss_type.dart';
-import 'package:PiliPlus/models_new/member/season_web/archive.dart';
-import 'package:PiliPlus/models_new/member/season_web/data.dart';
-import 'package:PiliPlus/pages/member_video_web/base/controller.dart';
+import 'package:Pilipili/http/loading_state.dart';
+import 'package:Pilipili/http/member.dart';
+import 'package:Pilipili/models/common/member/archive_sort_type_app.dart';
+import 'package:Pilipili/models/common/member/web_ss_type.dart';
+import 'package:Pilipili/models_new/member/season_web/archive.dart';
+import 'package:Pilipili/models_new/member/season_web/data.dart';
+import 'package:Pilipili/pages/member_video_web/base/controller.dart';
 import 'package:get/get.dart';
 
 class MemberSSWebCtr

@@ -1,19 +1,19 @@
 import 'dart:io' show Platform;
 
-import 'package:PiliPlus/common/widgets/route_aware_mixin.dart'
+import 'package:Pilipili/common/widgets/route_aware_mixin.dart'
     show routeObserver;
-import 'package:PiliPlus/common/widgets/selection_text.dart';
-import 'package:PiliPlus/http/browser_ua.dart';
-import 'package:PiliPlus/main.dart' show webViewEnvironment;
-import 'package:PiliPlus/models/common/webview_menu_type.dart';
-import 'package:PiliPlus/plugin/linux_webview.dart';
-import 'package:PiliPlus/utils/app_scheme.dart';
-import 'package:PiliPlus/utils/extension/num_ext.dart';
-import 'package:PiliPlus/utils/extension/string_ext.dart';
-import 'package:PiliPlus/utils/linux_cookie_manager.dart';
-import 'package:PiliPlus/utils/login_utils.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
-import 'package:PiliPlus/utils/utils.dart';
+import 'package:Pilipili/common/widgets/selection_text.dart';
+import 'package:Pilipili/http/browser_ua.dart';
+import 'package:Pilipili/main.dart' show webViewEnvironment;
+import 'package:Pilipili/models/common/webview_menu_type.dart';
+import 'package:Pilipili/plugin/linux_webview.dart';
+import 'package:Pilipili/utils/app_scheme.dart';
+import 'package:Pilipili/utils/extension/num_ext.dart';
+import 'package:Pilipili/utils/extension/string_ext.dart';
+import 'package:Pilipili/utils/linux_cookie_manager.dart';
+import 'package:Pilipili/utils/login_utils.dart';
+import 'package:Pilipili/utils/page_utils.dart';
+import 'package:Pilipili/utils/utils.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';

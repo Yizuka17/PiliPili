@@ -1,6 +1,6 @@
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/models_new/live/live_medal_wall/uinfo_medal.dart';
-import 'package:PiliPlus/utils/color_utils.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/models_new/live/live_medal_wall/uinfo_medal.dart';
+import 'package:Pilipili/utils/color_utils.dart';
 import 'package:material_ui/material_ui.dart';
 
 const _kFontSize = 10.0;

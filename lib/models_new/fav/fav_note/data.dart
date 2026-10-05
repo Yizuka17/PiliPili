@@ -1,4 +1,4 @@
-import 'package:PiliPlus/models_new/fav/fav_note/list.dart';
+import 'package:Pilipili/models_new/fav/fav_note/list.dart';
 
 class FavNoteData {
   List<FavNoteItemModel>? list;

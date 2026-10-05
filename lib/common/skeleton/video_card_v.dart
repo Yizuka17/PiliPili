@@ -1,5 +1,5 @@
-import 'package:PiliPlus/common/skeleton/skeleton.dart';
-import 'package:PiliPlus/common/style.dart';
+import 'package:Pilipili/common/skeleton/skeleton.dart';
+import 'package:Pilipili/common/style.dart';
 import 'package:material_ui/material_ui.dart';
 
 class VideoCardVSkeleton extends StatelessWidget {

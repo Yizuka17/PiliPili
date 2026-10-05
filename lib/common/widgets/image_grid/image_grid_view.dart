@@ -1,38 +1,38 @@
 /*
- * This file is part of PiliPlus
+ * This file is part of Pilipili
  *
- * PiliPlus is free software: you can redistribute it and/or modify
+ * Pilipili is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * PiliPlus is distributed in the hope that it will be useful,
+ * Pilipili is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with PiliPlus.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Pilipili.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import 'dart:io' show Platform;
 
-import 'package:PiliPlus/common/assets.dart';
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/badge.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/common/widgets/image_grid/image_grid_builder.dart';
-import 'package:PiliPlus/common/widgets/image_viewer/gallery_viewer.dart';
-import 'package:PiliPlus/common/widgets/scaffold/mini_scaffold.dart';
-import 'package:PiliPlus/models/common/image_preview_type.dart';
-import 'package:PiliPlus/utils/extension/context_ext.dart';
-import 'package:PiliPlus/utils/extension/num_ext.dart';
-import 'package:PiliPlus/utils/extension/size_ext.dart';
-import 'package:PiliPlus/utils/global_data.dart';
-import 'package:PiliPlus/utils/image_utils.dart';
-import 'package:PiliPlus/utils/page_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
-import 'package:PiliPlus/utils/storage_pref.dart';
+import 'package:Pilipili/common/assets.dart';
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/badge.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/common/widgets/image_grid/image_grid_builder.dart';
+import 'package:Pilipili/common/widgets/image_viewer/gallery_viewer.dart';
+import 'package:Pilipili/common/widgets/scaffold/mini_scaffold.dart';
+import 'package:Pilipili/models/common/image_preview_type.dart';
+import 'package:Pilipili/utils/extension/context_ext.dart';
+import 'package:Pilipili/utils/extension/num_ext.dart';
+import 'package:Pilipili/utils/extension/size_ext.dart';
+import 'package:Pilipili/utils/global_data.dart';
+import 'package:Pilipili/utils/image_utils.dart';
+import 'package:Pilipili/utils/page_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';

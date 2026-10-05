@@ -1,18 +1,18 @@
 import 'dart:io' show Platform;
 
-import 'package:PiliPlus/common/style.dart';
-import 'package:PiliPlus/common/widgets/image/image_save.dart';
-import 'package:PiliPlus/common/widgets/image/network_img_layer.dart';
-import 'package:PiliPlus/common/widgets/pendant_avatar.dart';
-import 'package:PiliPlus/common/widgets/stat/stat.dart';
-import 'package:PiliPlus/common/widgets/video_card/video_card_h.dart'
+import 'package:Pilipili/common/style.dart';
+import 'package:Pilipili/common/widgets/image/image_save.dart';
+import 'package:Pilipili/common/widgets/image/network_img_layer.dart';
+import 'package:Pilipili/common/widgets/pendant_avatar.dart';
+import 'package:Pilipili/common/widgets/stat/stat.dart';
+import 'package:Pilipili/common/widgets/video_card/video_card_h.dart'
     show pushVideoH;
-import 'package:PiliPlus/models/search/result.dart';
-import 'package:PiliPlus/utils/bili_utils.dart';
-import 'package:PiliPlus/utils/date_utils.dart';
-import 'package:PiliPlus/utils/duration_utils.dart';
-import 'package:PiliPlus/utils/num_utils.dart';
-import 'package:PiliPlus/utils/platform_utils.dart';
+import 'package:Pilipili/models/search/result.dart';
+import 'package:Pilipili/utils/bili_utils.dart';
+import 'package:Pilipili/utils/date_utils.dart';
+import 'package:Pilipili/utils/duration_utils.dart';
+import 'package:Pilipili/utils/num_utils.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
 import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';

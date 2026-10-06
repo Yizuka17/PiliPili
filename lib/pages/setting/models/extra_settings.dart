@@ -33,6 +33,7 @@ import 'package:Pilipili/services/download/download_service.dart';
 import 'package:Pilipili/utils/accounts.dart';
 import 'package:Pilipili/utils/android/bindings.g.dart';
 import 'package:Pilipili/utils/extension/num_ext.dart';
+import 'package:Pilipili/utils/extension/get_ext.dart';
 import 'package:Pilipili/utils/feed_back.dart';
 import 'package:Pilipili/utils/filtering_text.dart';
 import 'package:Pilipili/utils/global_data.dart';
@@ -54,6 +55,14 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:material_ui/material_ui.dart' hide RefreshIndicator;
 
 List<SettingsModel> get extraSettings => [
+  SwitchModel(
+    title: '悬停高亮',
+    subtitle: '鼠标悬停时高亮按钮、卡片和菜单',
+    leading: const Icon(Icons.highlight_alt_outlined),
+    setKey: SettingBoxKey.enableHoverHighlight,
+    defaultVal: true,
+    onChanged: (_) => Get.updateMyAppTheme(),
+  ),
   if (PlatformUtils.isDesktop) ...[
     SwitchModel(
       title: '退出时最小化',

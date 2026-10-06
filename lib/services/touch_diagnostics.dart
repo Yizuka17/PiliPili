@@ -58,7 +58,7 @@ abstract final class TouchDiagnostics {
       unawaited(sink.done.catchError(_disable));
       record('session', {
         'schema': 2,
-        'diagnosticRevision': 'v4',
+        'diagnosticRevision': 'v5',
         'pid': pid,
         'os': Platform.operatingSystemVersion,
         'debug': kDebugMode,

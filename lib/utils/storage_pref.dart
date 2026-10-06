@@ -520,6 +520,17 @@ abstract final class Pref {
   static bool get isPureBlackTheme =>
       _setting.get(SettingBoxKey.isPureBlackTheme, defaultValue: false);
 
+  static bool get enableHoverHighlight =>
+      _setting.get(SettingBoxKey.enableHoverHighlight, defaultValue: true);
+
+  static bool get enableAppVolume => _setting.get(
+    SettingBoxKey.enableAppVolume,
+    defaultValue: PlatformUtils.isDesktop,
+  );
+
+  static double get appVolume =>
+      _setting.get(SettingBoxKey.appVolume, defaultValue: 1.0);
+
   static bool get antiGoodsDyn =>
       _setting.get(SettingBoxKey.antiGoodsDyn, defaultValue: false);
 

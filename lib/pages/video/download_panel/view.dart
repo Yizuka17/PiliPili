@@ -534,7 +534,7 @@ class _DownloadPanelState extends State<DownloadPanel> {
 
   Widget _buildFooter(ThemeData theme, Color dividerColor) {
     return Container(
-      color: theme.hoverColor,
+      color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
       padding: EdgeInsets.only(
         bottom: MediaQuery.viewPaddingOf(context).bottom,
       ),

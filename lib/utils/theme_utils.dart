@@ -1,6 +1,7 @@
 import 'package:Pilipili/common/style.dart';
 import 'package:Pilipili/utils/extension/theme_ext.dart';
 import 'package:Pilipili/utils/font_utils.dart';
+import 'package:Pilipili/utils/hover_highlight_theme.dart';
 import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoThemeData;
 import 'package:flutter/foundation.dart' show PlatformDispatcher;
@@ -57,7 +58,7 @@ abstract final class ThemeUtils {
       );
     }
 
-    final theme = ThemeData(
+    var theme = ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
       fontFamily: fontFamily,
@@ -165,9 +166,8 @@ abstract final class ThemeUtils {
         },
       ),
     );
-    if (isDark && Pref.isPureBlackTheme) {
-      return darkenTheme(theme);
-    }
+    if (isDark && Pref.isPureBlackTheme) theme = darkenTheme(theme);
+    if (!Pref.enableHoverHighlight) theme = HoverHighlightTheme.apply(theme);
     return theme;
   }
 

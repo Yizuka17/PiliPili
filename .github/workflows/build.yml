@@ -84,14 +84,20 @@ jobs:
 
             - name: Write key
               if: github.event_name == 'workflow_dispatch'
+              env:
+                  SIGN_KEYSTORE_BASE64: ${{ secrets.SIGN_KEYSTORE_BASE64 }}
+                  KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+                  KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+                  KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+                  KEYSTORE_TYPE: ${{ secrets.KEYSTORE_TYPE || 'JKS' }}
               run: |
-                  if [ ! -z "${{ secrets.SIGN_KEYSTORE_BASE64 }}" ]; then
-                    echo "${{ secrets.SIGN_KEYSTORE_BASE64 }}" | base64 --decode > android/app/key.jks
-                    echo storeFile='key.jks' >> android/key.properties
-                    echo storePassword='${{ secrets.KEYSTORE_PASSWORD }}' >> android/key.properties
-                    echo keyAlias='${{ secrets.KEY_ALIAS }}' >> android/key.properties
-                    echo keyPassword='${{ secrets.KEY_PASSWORD }}' >> android/key.properties
+                  if [ -z "$SIGN_KEYSTORE_BASE64" ]; then
+                    echo '::error::Android release signing is not configured'
+                    exit 1
                   fi
+                  printf '%s' "$SIGN_KEYSTORE_BASE64" | base64 --decode > android/app/key.jks
+                  printf 'storeFile=key.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\nstoreType=%s\n' \
+                    "$KEYSTORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" "$KEYSTORE_TYPE" > android/key.properties
 
             - name: Set and Extract version
               if: ${{ github.event_name == 'workflow_dispatch' }}

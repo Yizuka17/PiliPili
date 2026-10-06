@@ -10,6 +10,8 @@ import 'package:Pilipili/pages/setting/widgets/ordered_multi_select_dialog.dart'
 import 'package:Pilipili/pages/setting/widgets/select_dialog.dart';
 import 'package:Pilipili/plugin/pl_player/models/audio_output_type.dart';
 import 'package:Pilipili/plugin/pl_player/models/hwdec_type.dart';
+import 'package:Pilipili/services/playback_volume.dart';
+import 'package:Pilipili/utils/platform_utils.dart';
 import 'package:Pilipili/utils/filtering_text.dart';
 import 'package:Pilipili/utils/storage.dart';
 import 'package:Pilipili/utils/storage_key.dart';
@@ -23,6 +25,14 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:material_ui/material_ui.dart';
 
 List<SettingsModel> get videoSettings => [
+  SwitchModel(
+    title: '应用内音量',
+    subtitle: '开启后调节播放器音量，关闭后调节系统音量',
+    leading: const Icon(Icons.volume_up_outlined),
+    setKey: SettingBoxKey.enableAppVolume,
+    defaultVal: PlatformUtils.isDesktop,
+    onChanged: PlaybackVolumeController.setAppVolumeEnabled,
+  ),
   const SwitchModel(
     title: '开启硬解',
     subtitle: '以较低功耗播放视频，若异常卡死请关闭',

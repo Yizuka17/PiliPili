@@ -56,7 +56,7 @@ class _WhisperDetailPageState
     final padding = MediaQuery.viewPaddingOf(context);
     late final containerColor = ElevationOverlay.colorWithOverlay(
       theme.colorScheme.surface,
-      theme.hoverColor,
+      theme.colorScheme.onSurface.withValues(alpha: 0.04),
       1,
     );
     return SimpleScaffold(

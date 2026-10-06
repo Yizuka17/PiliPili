@@ -40,9 +40,8 @@ import 'package:Pilipili/utils/global_data.dart';
 import 'package:Pilipili/utils/id_utils.dart';
 import 'package:Pilipili/utils/page_utils.dart';
 import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/services/playback_volume.dart';
 import 'package:Pilipili/utils/share_utils.dart';
-import 'package:Pilipili/utils/storage.dart';
-import 'package:Pilipili/utils/storage_key.dart';
 import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:Pilipili/utils/utils.dart';
 import 'package:Pilipili/utils/video_utils.dart';
@@ -111,8 +110,23 @@ class AudioController extends GetxController
 
   ListOrder order = ListOrder.ORDER_NORMAL;
 
-  double? _lastVolume;
-  late final RxDouble desktopVolume = RxDouble(Pref.desktopVolume);
+  double? _lastAppVolume;
+  double? _lastSystemVolume;
+  double? get _lastVolume =>
+      playbackVolume.appMode ? _lastAppVolume : _lastSystemVolume;
+  set _lastVolume(double? value) {
+    if (playbackVolume.appMode) {
+      _lastAppVolume = value;
+    } else {
+      _lastSystemVolume = value;
+    }
+  }
+
+  late final playbackVolume = PlaybackVolumeController((value) async {
+    await player?.setVolume(value);
+  });
+  RxDouble get desktopVolume => playbackVolume.volume;
+  double get maxVolume => playbackVolume.maxVolume;
 
   Timer? _statusTimer;
 
@@ -142,16 +156,15 @@ class AudioController extends GetxController
     if (clearLastVolme) {
       _lastVolume = null;
     }
-    desktopVolume.value = volume;
-    player?.setVolume(volume * 100);
+    playbackVolume.setVolume(volume);
   }
 
   void syncVolume([_]) {
     final volume = desktopVolume.value;
-    PlPlayerController.instance
-      ?..volume.value = volume
-      ..videoPlayerController?.setVolume(volume * 100);
-    GStorage.setting.put(SettingBoxKey.desktopVolume, volume.toPrecision(3));
+    if (playbackVolume.appMode) {
+      PlPlayerController.instance?.playbackVolume.syncAppVolume(volume);
+      playbackVolume.saveAppVolume();
+    }
   }
 
   @override
@@ -390,14 +403,14 @@ class AudioController extends GetxController
   Future<void> _initPlayerIfNeeded() async {
     if (_hasInit) return;
     _hasInit = true;
+    await PlaybackVolumeController.initializeSystem();
     assert(player == null, _subscriptions = null);
     player = await Player.create(
       configuration: PlayerConfiguration(
         options: {
           if (Platform.isAndroid) 'ao': Pref.audioOutput,
-          'volume': PlatformUtils.isDesktop
-              ? (desktopVolume.value * 100).toString()
-              : Pref.playerVolume.toString(),
+          'volume': playbackVolume.playerVolume.toString(),
+          'volume-max': '300',
           ...Pref.initBuffer(),
         },
       ),
@@ -821,6 +834,7 @@ class AudioController extends GetxController
 
   @override
   void onClose() {
+    playbackVolume.dispose();
     _stopStatusTimer();
     shutdownTimerService
       ..onPause = null

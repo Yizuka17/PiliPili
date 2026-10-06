@@ -124,8 +124,8 @@ try {
     Set-Location $workspace
 
     if (-not $SkipChecks) {
-        Invoke-Checked { dart analyze lib/services lib/common/widgets/scale_app.dart lib/common/widgets/gesture/mouse_interactive_viewer.dart lib/common/widgets/gesture/touch_diagnostic_ink_well.dart lib/common/widgets/video_card/video_card_h.dart lib/common/widgets/video_card/video_card_v.dart lib/plugin/pl_player/view/view.dart lib/plugin/pl_player/controller.dart lib/main.dart lib/pages/video/reply/widgets/reply_item_grpc.dart lib/pages/about/view.dart lib/utils/storage_pref.dart lib/utils/storage_key.dart }
-        Invoke-Checked { flutter test test/services test/utils/accounts/deleted_account_test.dart }
+        Invoke-Checked { dart analyze lib/services lib/common/widgets/scale_app.dart lib/common/widgets/gesture/mouse_interactive_viewer.dart lib/common/widgets/gesture/touch_diagnostic_ink_well.dart lib/common/widgets/video_card/video_card_h.dart lib/common/widgets/video_card/video_card_v.dart lib/plugin/pl_player/view/view.dart lib/plugin/pl_player/controller.dart lib/main.dart lib/pages/video/reply/widgets/reply_item_grpc.dart lib/pages/about/view.dart lib/utils/storage_pref.dart lib/utils/storage_key.dart lib/utils/theme_utils.dart lib/utils/hover_highlight_theme.dart lib/utils/release_version.dart lib/utils/update.dart lib/pages/setting/models lib/pages/audio lib/pages/video/widgets/header_control.dart lib/pages/video/widgets/player_focus.dart lib/pages/live_room/view.dart lib/pages/live_room/widgets/header_control.dart lib/pages/whisper_detail/view.dart lib/pages/video/download_panel/view.dart lib/pages/video/note/view.dart }
+        Invoke-Checked { flutter test test }
     }
     $flutterVersionDefine = 'pili.flutter=' + $flutterInfo.frameworkVersion
     $engineDefine = 'pili.engine=' + $flutterInfo.engineRevision
@@ -199,7 +199,7 @@ try {
         omittedUnusedLibraries = $omittedLibraries
         nativeTouchPolicy = 'disable-windows-press-and-hold-on-parent-and-flutter-view'
         touchHoverPolicy = 'clear-on-touch-and-activation-await-fresh-mouse'
-        diagnosticRevision = 'v4'
+        diagnosticRevision = 'v5'
         touchLoggingEnabled = -not $Production
         cursorDiagnostics = 'visibility-suppression-position-and-widget-states'
         projectPatches = @((git -C $sdk diff --name-only) | Where-Object { $_ -ne 'packages/flutter_tools/lib/src/windows/visual_studio.dart' })

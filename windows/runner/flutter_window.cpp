@@ -28,6 +28,9 @@ bool FlutterWindow::OnCreate() {
       flutter_controller_->engine()->messenger(), GetHandle(),
       flutter_controller_->view()->GetNativeWindow());
   RegisterPlugins(flutter_controller_->engine());
+  brightness_ = std::make_unique<WindowsBrightness>(
+      flutter_controller_->engine()->messenger(),
+      flutter_controller_->view()->GetNativeWindow());
 
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
@@ -44,6 +47,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  brightness_.reset();
   touch_input_.reset();
   if (flutter_controller_) {
     flutter_controller_ = nullptr;

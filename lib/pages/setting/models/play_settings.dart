@@ -12,6 +12,7 @@ import 'package:Pilipili/plugin/pl_player/models/bottom_progress_behavior.dart';
 import 'package:Pilipili/plugin/pl_player/models/fullscreen_mode.dart';
 import 'package:Pilipili/plugin/pl_player/models/play_repeat.dart';
 import 'package:Pilipili/services/service_locator.dart';
+import 'package:Pilipili/services/playback_volume.dart';
 import 'package:Pilipili/utils/extension/num_ext.dart';
 import 'package:Pilipili/utils/ios/pip_helper.dart';
 import 'package:Pilipili/utils/platform_utils.dart';
@@ -103,14 +104,14 @@ List<SettingsModel> get playSettings => [
     setKey: SettingBoxKey.enableSlideFS,
     defaultVal: true,
   ),
-  if (PlatformUtils.isMobile)
+  if (PlatformUtils.isMobile && !Pref.enableAppVolume)
     NormalModel(
       title: '播放器音量',
       leading: const Icon(Icons.volume_up),
       getSubtitle: () => '当前:「${Pref.playerVolume.toStringAsFixed(0)}%」',
       onTap: showPlayerVolumeDialog,
-    )
-  else
+    ),
+  if (PlatformUtils.isDesktop)
     NormalModel(
       title: '最高音量',
       leading: const Icon(Icons.volume_up),
@@ -389,14 +390,14 @@ Future<void> _showMaxVolumeDialog(
     context,
     title: const Text('最高音量'),
     value: Pref.maxVolume * 100,
-    onChanged: (rawValue) {
+    onChanged: (rawValue) async {
       final maxVolume = (rawValue / 100).toPrecision(2);
       if (Pref.desktopVolume > maxVolume) {
         GStorage.setting.put(SettingBoxKey.desktopVolume, maxVolume);
       }
-      GStorage.setting
-          .put(SettingBoxKey.maxVolume, maxVolume)
-          .whenComplete(setState);
+      await GStorage.setting.put(SettingBoxKey.maxVolume, maxVolume);
+      await PlaybackVolumeController.refreshAppVolumeLimits();
+      setState();
     },
   );
 }

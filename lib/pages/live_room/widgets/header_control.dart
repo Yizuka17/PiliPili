@@ -19,6 +19,7 @@ import 'package:Pilipili/utils/extension/size_ext.dart';
 import 'package:Pilipili/utils/extension/string_ext.dart';
 import 'package:Pilipili/utils/ios/pip_helper.dart';
 import 'package:Pilipili/utils/platform_utils.dart';
+import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:Pilipili/utils/storage.dart';
 import 'package:Pilipili/utils/storage_key.dart';
 import 'package:collection/collection.dart';
@@ -206,7 +207,7 @@ class _LiveHeaderControlState extends State<LiveHeaderControl>
                     ),
             ),
           ),
-          if (PlatformUtils.isMobile)
+          if (PlatformUtils.isMobile && !Pref.enableAppVolume)
             Obx(() {
               final continuePlayInBackground =
                   plPlayerController.continuePlayInBackground.value;

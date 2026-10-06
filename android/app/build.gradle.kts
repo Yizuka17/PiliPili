@@ -49,6 +49,7 @@ android {
             storePassword = keyProperties.getProperty("storePassword")
             keyAlias = keyProperties.getProperty("keyAlias")
             keyPassword = keyProperties.getProperty("keyPassword")
+            storeType = keyProperties.getProperty("storeType") ?: "JKS"
             enableV1Signing = true
             enableV2Signing = true
         }

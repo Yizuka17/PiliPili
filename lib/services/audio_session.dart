@@ -26,10 +26,7 @@ class AudioSessionHandler {
         // if (!player.playerStatus.playing) return;
         switch (event.type) {
           case AudioInterruptionType.duck:
-            PlPlayerController.setVolumeIfExists(
-              (PlPlayerController.getVolumeIfExists() ?? 0) * 0.5,
-              showIndicator: false,
-            );
+            PlPlayerController.instance?.playbackVolume.setDucked(true);
             // player.setVolume(player.volume.value * 0.5);
             break;
           case AudioInterruptionType.pause:
@@ -46,10 +43,7 @@ class AudioSessionHandler {
       } else {
         switch (event.type) {
           case AudioInterruptionType.duck:
-            PlPlayerController.setVolumeIfExists(
-              (PlPlayerController.getVolumeIfExists() ?? 0) * 2,
-              showIndicator: false,
-            );
+            PlPlayerController.instance?.playbackVolume.setDucked(false);
             // player.setVolume(player.volume.value * 2);
             break;
           case AudioInterruptionType.pause:

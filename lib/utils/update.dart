@@ -9,6 +9,7 @@ import 'package:Pilipili/utils/accounts/account.dart';
 import 'package:Pilipili/utils/page_utils.dart';
 import 'package:Pilipili/utils/storage.dart';
 import 'package:Pilipili/utils/storage_key.dart';
+import 'package:Pilipili/utils/release_version.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -28,16 +29,26 @@ abstract final class Update {
           extra: {'account': const NoAccount()},
         ),
       );
-      if (res.data is Map || res.data.isEmpty) {
+      if (res.data is! List || res.data.isEmpty) {
         if (!isAuto) {
           SmartDialog.showToast('检查更新失败，GitHub接口未返回数据，请检查网络');
         }
         return;
       }
-      final data = res.data[0];
-      final int latest =
-          DateTime.parse(data['created_at']).millisecondsSinceEpoch ~/ 1000;
-      if (BuildConfig.buildTime >= latest) {
+      final current = ReleaseVersion.parse(
+        BuildConfig.versionName,
+        build: BuildConfig.versionCode,
+      );
+      final data = ReleaseVersion.latestRelease(
+        res.data,
+        includePrerelease: current?.pre.isNotEmpty ?? false,
+      );
+      final latest = data == null ? null : ReleaseVersion.fromRelease(data);
+      if (current == null || latest == null || data == null) {
+        if (!isAuto) SmartDialog.showToast('检查更新失败，无法读取版本号');
+        return;
+      }
+      if (current.compareTo(latest) >= 0) {
         if (!isAuto) {
           SmartDialog.showToast('已是最新版本');
         }
@@ -111,6 +122,7 @@ abstract final class Update {
         );
       }
     } catch (e) {
+      if (!isAuto) SmartDialog.showToast('检查更新失败，请检查网络');
       if (kDebugMode) debugPrint('failed to check update: $e');
     }
   }

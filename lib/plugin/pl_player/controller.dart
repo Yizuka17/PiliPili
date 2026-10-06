@@ -38,7 +38,6 @@ import 'package:Pilipili/utils/asset_utils.dart';
 import 'package:Pilipili/utils/device_utils.dart';
 import 'package:Pilipili/utils/duration_utils.dart';
 import 'package:Pilipili/utils/extension/box_ext.dart';
-import 'package:Pilipili/utils/extension/num_ext.dart';
 import 'package:Pilipili/utils/extension/size_ext.dart';
 import 'package:Pilipili/utils/feed_back.dart';
 import 'package:Pilipili/utils/image_utils.dart';
@@ -57,7 +56,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/services.dart'
     show DeviceOrientation, HapticFeedback, KeyDownEvent, LogicalKeyboardKey;
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
-import 'package:flutter_volume_controller/flutter_volume_controller.dart';
+import 'package:Pilipili/services/playback_volume.dart';
 import 'package:get/get.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:material_ui/material_ui.dart';
@@ -110,9 +109,10 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
   final RxDouble _playbackSpeed = Pref.playSpeedDefault.obs;
   late final RxDouble _longPressSpeed = Pref.longPressSpeedDefault.obs;
 
-  final RxDouble volume = RxDouble(
-    PlatformUtils.isDesktop ? Pref.desktopVolume : 1.0,
-  );
+  late final playbackVolume = PlaybackVolumeController((value) async {
+    await _videoPlayerController?.setVolume(value);
+  });
+  RxDouble get volume => playbackVolume.volume;
   final setSystemBrightness = Pref.setSystemBrightness;
 
   final RxDouble brightness = (-1.0).obs;
@@ -829,9 +829,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     final opt = {
       'video-sync': Pref.videoSync,
       if (Platform.isAndroid) 'ao': Pref.audioOutput,
-      'volume':
-          (PlatformUtils.isMobile ? Pref.playerVolume : volume.value * 100)
-              .toString(),
+      'volume': playbackVolume.playerVolume.toString(),
+      'volume-max': '300',
     };
     final autosync = Pref.autosync;
     if (autosync != '0') {
@@ -1278,17 +1277,11 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
   Timer? volumeTimer;
   bool volumeInterceptEventStream = false;
 
-  final double maxVolume = PlatformUtils.isDesktop ? Pref.maxVolume : 1.0;
+  double get maxVolume => playbackVolume.maxVolume;
   Future<void> setVolume(double volume, {bool showIndicator = true}) async {
     if (this.volume.value != volume) {
-      this.volume.value = volume;
       try {
-        if (PlatformUtils.isDesktop) {
-          await _videoPlayerController!.setVolume(volume * 100);
-        } else {
-          FlutterVolumeController.updateShowSystemUI(false);
-          await FlutterVolumeController.setVolume(volume);
-        }
+        await playbackVolume.setVolume(volume);
       } catch (err) {
         if (kDebugMode) debugPrint(err.toString());
       }
@@ -1301,9 +1294,6 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     volumeTimer = Timer(const Duration(milliseconds: 200), () {
       volumeIndicator.value = false;
       volumeInterceptEventStream = false;
-      if (PlatformUtils.isDesktop) {
-        setting.put(SettingBoxKey.desktopVolume, volume.toPrecision(3));
-      }
     });
   }
 
@@ -1657,6 +1647,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
     }
 
     _playerCount = 0;
+    volumeTimer?.cancel();
+    playbackVolume.dispose();
     if (removeSafeArea) {
       showSystemBar();
     }

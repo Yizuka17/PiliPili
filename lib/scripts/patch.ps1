@@ -226,9 +226,11 @@ $RefreshIndicatorPatchMaterial = "lib/scripts/material/refresh_indicator.patch"
 
 $TabsPatchMaterial = "lib/scripts/material/tabs.patch"
 
+$HoverHighlightPatchMaterial = "lib/scripts/material/hover_highlight.patch"
+
 $patches_material = @($ModalBarrierPatchMaterial, $NavigationDrawerPatchMaterial, $PopupMenuPatchMaterial,
                     $FABPatchMaterial, $TextFieldPatchMaterial, $ScaffoldPatchMaterial, $RefreshIndicatorPatchMaterial,
-                    $TabsPatchMaterial)
+                    $TabsPatchMaterial, $HoverHighlightPatchMaterial)
 
 $PubCacheDir = if ($env:PUB_CACHE) { $env:PUB_CACHE } else { "~/.pub-cache" }
 

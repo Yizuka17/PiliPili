@@ -939,7 +939,8 @@ class _LiveRoomPageState extends State<LiveRoomPage>
             : colorScheme.onSurfaceVariant;
         if (states.contains(WidgetState.pressed)) {
           return color.withValues(alpha: 0.1);
-        } else if (states.contains(WidgetState.hovered)) {
+        } else if (states.contains(WidgetState.hovered) &&
+            Pref.enableHoverHighlight) {
           return color.withValues(alpha: 0.08);
         } else if (states.contains(WidgetState.focused)) {
           return color.withValues(alpha: 0.1);

@@ -51,6 +51,11 @@ WindowsTouchHoverPolicy::Decision WindowsTouchHoverPolicy::Handle(
   Decision decision;
   if (message == WM_POINTERDOWN && pointer_type == PT_TOUCH && mouse_buttons_ == 0) {
     touch_mode_ = true;
+    // The same stationary-mouse guard also applies to in-app touch. Windows
+    // can relabel a stale cursor refresh as mouse hardware or unknown input.
+    awaiting_mouse_activity_ = true;
+    reentry_position_known_ = screen_position != nullptr;
+    if (screen_position) reentry_position_ = *screen_position;
     decision.clear_hover = true;
   }
   const bool promoted = (extra_info & kSignatureMask) == kTouchOrPenSignature;
@@ -200,7 +205,7 @@ LRESULT CALLBACK WindowsTouchInput::SubclassProc(
       message == WM_ACTIVATE && LOWORD(wparam) != WA_INACTIVE;
   const bool clear_reentry = reactivated && input->ReactivateHover();
   POINT screen_position{};
-  const bool position_known = message == WM_MOUSEMOVE &&
+  const bool position_known = (message == WM_MOUSEMOVE || message == WM_POINTERDOWN) &&
       GetCursorPos(&screen_position) != FALSE;
   const auto decision = input->hover_policy_.Handle(
       message, wparam, pointer_type, source_known, source, GetMessageExtraInfo(),

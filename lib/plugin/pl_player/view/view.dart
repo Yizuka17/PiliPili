@@ -13,6 +13,8 @@ import 'package:Pilipili/common/widgets/gesture/immediate_tap_gesture_recognizer
 import 'package:Pilipili/common/widgets/gesture/mouse_interactive_viewer.dart';
 import 'package:Pilipili/common/widgets/gesture/player_gesture_recognizer.dart';
 import 'package:Pilipili/services/touch_diagnostics.dart';
+import 'package:Pilipili/services/playback_volume.dart';
+import 'package:Pilipili/services/desktop_brightness.dart';
 import 'package:Pilipili/common/widgets/loading_widget.dart';
 import 'package:Pilipili/common/widgets/pair.dart';
 import 'package:Pilipili/common/widgets/player_bar.dart';
@@ -143,6 +145,9 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   final RxDouble _brightnessValue = 0.0.obs;
   final RxBool _brightnessIndicator = false.obs;
   Timer? _brightnessTimer;
+  final _desktopBrightness = DesktopBrightness();
+  bool get _canAdjustBrightness =>
+      !PlatformUtils.isDesktop || _desktopBrightness.supported;
 
   late FullScreenMode mode;
 
@@ -154,31 +159,45 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   bool _pauseDueToPauseUponEnteringBackgroundMode = false;
 
   StreamSubscription? _brightnessListener;
+  StreamSubscription? _volumeListener;
   void _onBrightnessChanged(double value) {
     if (mounted && _gestureType != .left) {
       _brightnessValue.value = value;
     }
   }
 
-  void _getSystemBrightness() {
-    ScreenBrightnessPlatform.instance.system.then((res) {
-      if (mounted) {
-        _brightnessValue.value = res;
+  Future<void> _initializeBrightness() async {
+    if (PlatformUtils.isDesktop) {
+      if (await _desktopBrightness.initialize() && mounted) {
+        _brightnessValue.value = _desktopBrightness.value;
       }
-    });
-  }
-
-  void _getAppBrightness() {
-    ScreenBrightnessPlatform.instance.application.then((res) {
-      if (mounted) {
-        _brightnessValue.value = res;
-      }
-    });
+      return;
+    }
+    try {
+      final system = Platform.isIOS || plPlayerController.setSystemBrightness;
+      final platform = ScreenBrightnessPlatform.instance;
+      final value = await (system ? platform.system : platform.application);
+      if (!mounted) return;
+      _brightnessValue.value = value;
+      _brightnessListener =
+          (system
+                  ? platform.onSystemScreenBrightnessChanged
+                  : platform.onApplicationScreenBrightnessChanged)
+              .listen(
+                _onBrightnessChanged,
+                onError: (Object error) {
+                  if (kDebugMode) debugPrint('Brightness listener: $error');
+                },
+              );
+    } catch (error) {
+      if (kDebugMode) debugPrint('Brightness initialization: $error');
+    }
   }
 
   void _onVolumeChanged(double value) {
-    if (mounted && !plPlayerController.volumeInterceptEventStream) {
-      plPlayerController.volume.value = value;
+    if (mounted &&
+        !plPlayerController.playbackVolume.appMode &&
+        !plPlayerController.volumeInterceptEventStream) {
       if (Platform.isIOS && !FlutterVolumeController.showSystemUI) {
         plPlayerController
           ..volumeIndicator.value = true
@@ -193,14 +212,6 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           );
       }
     }
-  }
-
-  void _getCurrVolume() {
-    FlutterVolumeController.getVolume().then((res) {
-      if (mounted) {
-        plPlayerController.volume.value = res!;
-      }
-    });
   }
 
   int? tmpSubtitlePaddingB;
@@ -268,37 +279,11 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     );
     videoController = plPlayerController.videoController!;
 
-    if (PlatformUtils.isMobile) {
-      Future.microtask(() {
-        try {
-          FlutterVolumeController.updateShowSystemUI(true);
-          _getCurrVolume();
-          FlutterVolumeController.addListener(
-            _onVolumeChanged,
-            // The plugin defaults to ambient and overwrites AVAudioSession.
-            // Keep media playback audible regardless of listener/mpv init order.
-            category: AudioSessionCategory.playback,
-            emitOnStart: false,
-          );
-        } catch (_) {}
-
-        try {
-          if (Platform.isIOS || plPlayerController.setSystemBrightness) {
-            _getSystemBrightness();
-            _brightnessListener = ScreenBrightnessPlatform
-                .instance
-                .onSystemScreenBrightnessChanged
-                .listen(_onBrightnessChanged);
-          } else {
-            _getAppBrightness();
-            _brightnessListener = ScreenBrightnessPlatform
-                .instance
-                .onApplicationScreenBrightnessChanged
-                .listen(_onBrightnessChanged);
-          }
-        } catch (_) {}
-      });
-    }
+    _volumeListener = PlaybackVolumeController.systemVolume.listen(
+      _onVolumeChanged,
+    );
+    unawaited(PlaybackVolumeController.initializeSystem());
+    unawaited(_initializeBrightness());
 
     if (plPlayerController.enableTapDm) {
       _tapGestureRecognizer = ImmediateTapGestureRecognizer(
@@ -355,7 +340,15 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
   Future<void> setBrightness(double value) async {
     _brightnessValue.value = value;
     try {
-      if (Platform.isIOS || plPlayerController.setSystemBrightness) {
+      if (PlatformUtils.isDesktop) {
+        if (!await _desktopBrightness.setBrightness(value)) {
+          if (!mounted) return;
+          _gestureType = .right;
+          _brightnessIndicator.value = false;
+          SmartDialog.showToast('当前屏幕不支持调节亮度，左侧改为调节音量');
+          return;
+        }
+      } else if (Platform.isIOS || plPlayerController.setSystemBrightness) {
         await ScreenBrightnessPlatform.instance.setSystemScreenBrightness(
           value,
         );
@@ -364,7 +357,10 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           value,
         );
       }
-    } catch (_) {}
+    } catch (_) {
+      return;
+    }
+    if (!mounted) return;
     _brightnessIndicator.value = true;
     _brightnessTimer?.cancel();
     _brightnessTimer = Timer(const Duration(milliseconds: 200), () {
@@ -377,6 +373,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
 
   @override
   void dispose() {
+    _brightnessTimer?.cancel();
+    if (PlatformUtils.isDesktop) unawaited(_desktopBrightness.dispose());
     removeObserverMobile(this);
     _danmakuListener?.cancel();
     _tapGestureRecognizer.dispose();
@@ -384,13 +382,11 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     _doubleTapGestureRecognizer.dispose();
     _scaleGestureRecognizer.dispose();
     _brightnessListener?.cancel();
+    _volumeListener?.cancel();
     _controlsListener?.cancel();
     _animationController.dispose();
     _transformationController.dispose();
     _removeDmAction();
-    if (PlatformUtils.isMobile) {
-      FlutterVolumeController.removeListener();
-    }
     super.dispose();
   }
 
@@ -1010,11 +1006,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
             return;
           }
           // 左边区域
-          if (PlatformUtils.isDesktop) {
-            _gestureType = .right;
-          } else {
-            _gestureType = .left;
-          }
+          _gestureType = _canAdjustBrightness ? .left : .right;
         } else if (tapPosition < sectionWidth * 2) {
           if (!plPlayerController.enableSlideFS) {
             return;
@@ -1321,7 +1313,10 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         _onHorizontalDragStart();
         _gestureType = .horizontal;
       } else if (dy > 3 * dx) {
-        _gestureType = .right;
+        _gestureType =
+            event.localPosition.dx < maxWidth / 3 && _canAdjustBrightness
+            ? .left
+            : .right;
       }
       return;
     }
@@ -1330,6 +1325,12 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       if (plPlayerController.isLive) return;
 
       _onHorizontalDragUpdate(event.localPanDelta.dx);
+    } else if (_gestureType == .left) {
+      if (!plPlayerController.enableSlideVolumeBrightness) return;
+      setBrightness(
+        (_brightnessValue.value - event.localPanDelta.dy / (maxHeight * 3))
+            .clamp(0.0, 1.0),
+      );
     } else if (_gestureType == .right) {
       if (!plPlayerController.enableSlideVolumeBrightness) {
         return;

@@ -492,7 +492,7 @@ class HeaderControlState extends State<HeaderControl>
                   descPosType: .subtitle,
                   descStyle: subTitleStyle,
                 ),
-                if (PlatformUtils.isMobile)
+                if (PlatformUtils.isMobile && !Pref.enableAppVolume)
                   if (plPlayerController.videoPlayerController
                       case final player?)
                     Builder(

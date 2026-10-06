@@ -31,6 +31,9 @@ abstract final class SettingBoxKey {
       audioPlayMode = 'audioPlayMode',
       showBatteryLevel = 'showBatteryLevel',
       playerVolume = 'playerVolume',
+      enableAppVolume = 'enableAppVolume',
+      appVolume = 'appVolume',
+      enableHoverHighlight = 'enableHoverHighlight',
       maxVolume = 'maxVolume';
 
   static const String enableVerticalExpand = 'enableVerticalExpand',

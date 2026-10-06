@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "windows_touch_input.h"
+#include "windows_brightness.h"
 
 namespace {
 int pointer_down = 0;
@@ -127,6 +128,14 @@ bool CheckReentryPolicy() {
   const POINT external_mouse{800, 600};
   const POINT moved{801, 600};
   WindowsTouchHoverPolicy policy;
+  // A touch inside the app needs the same protection as window reentry.
+  policy.Handle(WM_POINTERDOWN, 1, PT_TOUCH, true, touch, 0, &before);
+  for (const auto source : {mouse, INPUT_MESSAGE_SOURCE{}}) {
+    if (!policy.Handle(WM_MOUSEMOVE, 0, PT_MOUSE, true, source, 0,
+                       &before).suppress_move || !policy.touch_mode()) return false;
+  }
+  if (policy.Handle(WM_MOUSEMOVE, 0, PT_MOUSE, true, mouse, 0,
+                    &moved).suppress_move || policy.touch_mode()) return false;
   policy.Handle(WM_POINTERDOWN, 1, PT_TOUCH, true, touch, 0);
   policy.Handle(WM_MOUSEMOVE, 0, PT_MOUSE, true, mouse, 0, &before);
   if (policy.touch_mode()) return false;
@@ -248,6 +257,65 @@ int main() {
   if (messenger.handler || GetProp(view, MICROSOFT_TABLETPENSERVICE_PROPERTY) != nullptr ||
       GetProp(parent, MICROSOFT_TABLETPENSERVICE_PROPERTY) !=
           reinterpret_cast<HANDLE>(TABLET_DISABLE_PENTAPFEEDBACK)) return 6;
+  {
+    // Read only: validate the real WMI path or a clean unsupported response.
+    // Do not alter the user's panel brightness during build checks.
+    WindowsBrightness brightness(&messenger, view);
+    const auto request = flutter::StandardMethodCodec::GetInstance().EncodeMethodCall(
+        flutter::MethodCall<flutter::EncodableValue>("getBrightness", nullptr));
+    std::vector<RECT> displays;
+    EnumDisplayMonitors(nullptr, nullptr,
+      [](HMONITOR, HDC, LPRECT rect, LPARAM context) -> BOOL {
+        reinterpret_cast<std::vector<RECT>*>(context)->push_back(*rect);
+        return TRUE;
+      }, reinterpret_cast<LPARAM>(&displays));
+    if (displays.empty()) displays.push_back(RECT{0, 0, 200, 200});
+    for (const auto& display : displays) {
+      SetWindowPos(parent, nullptr, display.left + 10, display.top + 10, 0, 0,
+                   SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    bool valid = false;
+    double current_brightness = -1;
+    messenger.handler(request->data(), request->size(),
+      [&valid, &current_brightness](const uint8_t* data, size_t size) {
+        flutter::MethodResultFunctions<flutter::EncodableValue> result(
+          [&valid, &current_brightness](const flutter::EncodableValue* value) {
+            const auto* brightness = value ? std::get_if<double>(value) : nullptr;
+            valid = brightness && *brightness >= 0 && *brightness <= 1;
+            if (valid) {
+              current_brightness = *brightness;
+              std::cout << "WMI brightness read: " << *brightness << '\n';
+            }
+          },
+          [&valid](const std::string& code, const std::string&, const flutter::EncodableValue*) {
+            valid = code == "unavailable";
+            if (valid) std::cout << "WMI brightness unavailable; DDC/volume fallback applies\n";
+          }, nullptr);
+        flutter::StandardMethodCodec::GetInstance().DecodeAndProcessResponseEnvelope(data, size, &result);
+      });
+    if (!valid) return 11;
+    if (current_brightness >= 0) {
+      // Exercise the setter using the current level, leaving brightness unchanged.
+      const auto unchanged = flutter::StandardMethodCodec::GetInstance().EncodeMethodCall(
+          flutter::MethodCall<flutter::EncodableValue>("setBrightness",
+              std::make_unique<flutter::EncodableValue>(current_brightness)));
+      bool write_valid = false;
+      messenger.handler(unchanged->data(), unchanged->size(),
+        [&write_valid](const uint8_t* data, size_t size) {
+          flutter::MethodResultFunctions<flutter::EncodableValue> result(
+            [&write_valid](const flutter::EncodableValue*) {
+              write_valid = true;
+              std::cout << "WMI brightness setter passed at unchanged level\n";
+            },
+            [&write_valid](const std::string& code, const std::string&, const flutter::EncodableValue*) {
+              write_valid = code == "unavailable";
+              if (write_valid) std::cout << "WMI setter unavailable; volume fallback applies\n";
+            }, nullptr);
+          flutter::StandardMethodCodec::GetInstance().DecodeAndProcessResponseEnvelope(data, size, &result);
+        });
+      if (!write_valid) return 12;
+    }
+    }
+  }
   DestroyWindow(parent);
   UnregisterClass(wc.lpszClassName, wc.hInstance);
   std::cout << "Native touch policy passed: parent/view configuration, raw touch and mouse forwarding, diagnostics, cleanup\n";

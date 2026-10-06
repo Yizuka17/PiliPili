@@ -38,7 +38,7 @@ import 'package:Pilipili/utils/platform_utils.dart';
 import 'package:Pilipili/utils/storage.dart';
 import 'package:Pilipili/utils/storage_key.dart';
 import 'package:Pilipili/utils/utils.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:Pilipili/utils/storage_pref.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -636,7 +636,7 @@ class _AudioPageState extends State<AudioPage> {
                     HeaderControlState.showPlayerInfo(context, player: player);
                   },
                 ),
-                if (PlatformUtils.isMobile)
+                if (PlatformUtils.isMobile && !Pref.enableAppVolume)
                   ListTile(
                     dense: true,
                     leading: const Icon(Icons.volume_up, size: 20),
@@ -813,15 +813,13 @@ class _AudioPageState extends State<AudioPage> {
         ],
       );
     }
-    if (kDebugMode || PlatformUtils.isDesktop) {
-      child = Row(
-        spacing: 10,
-        children: [
-          Expanded(child: child),
-          VolumeButton(controller: _controller),
-        ],
-      );
-    }
+    child = Row(
+      spacing: 10,
+      children: [
+        Expanded(child: child),
+        VolumeButton(controller: _controller),
+      ],
+    );
     return child;
   }
 

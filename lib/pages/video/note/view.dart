@@ -138,7 +138,7 @@ class _NoteListPageState extends State<NoteListPage>
             bottom: MediaQuery.viewPaddingOf(context).bottom + 6,
           ),
           decoration: BoxDecoration(
-            color: theme.hoverColor,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.04),
             border: Border(
               top: BorderSide(
                 width: 0.5,

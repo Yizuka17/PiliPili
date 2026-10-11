@@ -317,11 +317,7 @@ mixin HeaderMixin<T extends StatefulWidget> on State<T> {
                         onChanged: updateOpacity,
                       ),
                     ),
-                    if (!isLive)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        child: InteractiveCardOpacityControl(),
-                      ),
+                    if (!isLive) const InteractiveCardOpacityControl(),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

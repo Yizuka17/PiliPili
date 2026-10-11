@@ -140,7 +140,7 @@ void main() {
     expect(posts, 0);
 
     await tester.runAsync(() async {
-      await tester.tap(find.byTooltip('恢复默认 90%').first);
+      await tester.tap(find.byTooltip('默认值: 90.0%').first);
       await GStorage.setting.flush();
     });
     await tester.pumpAndSettle();

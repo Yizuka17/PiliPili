@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:Pilipili/common/widgets/button/icon_button.dart';
 import 'package:Pilipili/utils/storage.dart';
 import 'package:Pilipili/utils/storage_key.dart';
 import 'package:Pilipili/utils/storage_pref.dart';
@@ -44,23 +45,32 @@ class _InteractiveCardOpacityControlState
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text('互动卡片不透明度 ${(opacity * 100).round()}%')),
-          IconButton(
-            tooltip: '恢复默认 90%',
-            icon: const Icon(Icons.refresh, size: 20),
+          Expanded(
+            child: Text('互动卡片不透明度 ${(opacity * 100).toStringAsFixed(1)}%'),
+          ),
+          iconButton(
+            tooltip: '默认值: 90.0%',
+            icon: const Icon(Icons.refresh),
             onPressed: () => update(Pref.defaultInteractiveCardOpacity),
+            iconColor: Theme.of(context).colorScheme.outline,
+            size: 24,
+            iconSize: 24,
           ),
         ],
       ),
-      Slider(
-        key: const ValueKey('interactive-card-opacity-slider'),
-        value: opacity,
-        min: 0,
-        max: 1,
-        divisions: 100,
-        label: '${(opacity * 100).round()}%',
-        onChanged: update,
+      Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Slider(
+          key: const ValueKey('interactive-card-opacity-slider'),
+          value: opacity,
+          min: 0,
+          max: 1,
+          divisions: 100,
+          label: '${(opacity * 100).toStringAsFixed(1)}%',
+          onChanged: update,
+        ),
       ),
     ],
   );

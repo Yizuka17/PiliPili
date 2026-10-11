@@ -2,6 +2,8 @@
 
 #include <inputpaneinterop.h>
 #include <SystemMediaTransportControlsInterop.h>
+#include <shcore.h>
+#include <shlwapi.h>
 #include <flutter/standard_method_codec.h>
 #include <algorithm>
 #include <chrono>
@@ -136,6 +138,7 @@ void WindowsIntegrations::SetEnabled(bool enabled) {
     title_.clear();
     artist_.clear();
     artwork_.clear();
+    artwork_bytes_.clear();
   }
 }
 
@@ -144,16 +147,29 @@ void WindowsIntegrations::UpdateMedia(const Map& data) {
   const auto title = String(data, "title");
   const auto artist = String(data, "artist");
   const auto artwork = String(data, "artwork");
-  if (!metadata_set_ || title != title_ || artist != artist_ || artwork != artwork_) {
+  const auto artwork_it = data.find(Value("artworkBytes"));
+  const auto bytes = artwork_it == data.end() ? nullptr :
+      std::get_if<std::vector<uint8_t>>(&artwork_it->second);
+  const std::vector<uint8_t> empty;
+  const auto& artwork_bytes = bytes ? *bytes : empty;
+  if (!metadata_set_ || title != title_ || artist != artist_ || artwork != artwork_ ||
+      artwork_bytes != artwork_bytes_) {
     const auto updater = controls_.DisplayUpdater();
     updater.Type(MediaPlaybackType::Music);
     updater.MusicProperties().Title(winrt::to_hstring(title));
     updater.MusicProperties().Artist(winrt::to_hstring(artist));
     updater.Thumbnail(nullptr);
-    if (!artwork.empty()) {
+    if (!artwork_bytes.empty()) {
       try {
-        updater.Thumbnail(winrt::Windows::Storage::Streams::RandomAccessStreamReference::CreateFromUri(
-            winrt::Windows::Foundation::Uri(winrt::to_hstring(artwork))));
+        winrt::com_ptr<IStream> memory;
+        memory.attach(SHCreateMemStream(artwork_bytes.data(),
+            static_cast<UINT>(artwork_bytes.size())));
+        winrt::check_pointer(memory.get());
+        using namespace winrt::Windows::Storage::Streams;
+        IRandomAccessStream stream{nullptr};
+        winrt::check_hresult(CreateRandomAccessStreamOverStream(memory.get(), BSOS_DEFAULT,
+            winrt::guid_of<IRandomAccessStream>(), winrt::put_abi(stream)));
+        updater.Thumbnail(RandomAccessStreamReference::CreateFromStream(stream));
       } catch (const winrt::hresult_error&) {
         // Artwork availability must never prevent titles or media controls.
       }
@@ -163,6 +179,7 @@ void WindowsIntegrations::UpdateMedia(const Map& data) {
     title_ = title;
     artist_ = artist;
     artwork_ = artwork;
+    artwork_bytes_ = artwork_bytes;
   }
   controls_.IsNextEnabled(Boolean(data, "canSkip"));
   controls_.IsPreviousEnabled(Boolean(data, "canSkip"));

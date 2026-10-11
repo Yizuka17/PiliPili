@@ -28,7 +28,7 @@ target_compile_definitions(windows_integrations_test PRIVATE UNICODE _UNICODE NO
 target_compile_options(windows_integrations_test PRIVATE /W4 /WX /EHsc /wd4100)
 target_include_directories(windows_integrations_test PRIVATE
   "${PILI_WORKSPACE}/windows/runner" "${EPHEMERAL}/cpp_client_wrapper/include" "${EPHEMERAL}")
-target_link_libraries(windows_integrations_test PRIVATE user32 windowsapp runtimeobject ole32
+target_link_libraries(windows_integrations_test PRIVATE user32 windowsapp runtimeobject ole32 shcore shlwapi
   "${PILI_WORKSPACE}/build/windows/x64/flutter/$<CONFIG>/flutter_wrapper_app.lib"
   "${EPHEMERAL}/flutter_windows.dll.lib")
 add_custom_command(TARGET windows_integrations_test POST_BUILD

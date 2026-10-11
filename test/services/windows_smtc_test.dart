@@ -44,7 +44,11 @@ void main() {
       calls.add(call);
       return null;
     });
-    smtc = WindowsSmtc(channel: channel, supported: true);
+    smtc = WindowsSmtc(
+      channel: channel,
+      supported: true,
+      artworkLoader: (_) async => null,
+    );
     handler = RecordingAudioHandler();
     smtc.bind(handler);
   });
@@ -115,4 +119,84 @@ void main() {
       expect(handler.commands, isEmpty);
     },
   );
+
+  test(
+    'cover loads once and does not block metadata or publish after disable',
+    () async {
+      final loaded = Completer<Uint8List?>();
+      var loads = 0;
+      smtc = WindowsSmtc(
+        channel: channel,
+        supported: true,
+        artworkLoader: (_) {
+          ++loads;
+          return loaded.future;
+        },
+      );
+      smtc.setMediaItem(item);
+      smtc.updatePlayback(
+        PlaybackState(processingState: .ready, playing: true),
+      );
+      expect(loads, 0);
+      await smtc.setEnabled(true);
+      expect(loads, 1);
+      expect((calls.last.arguments as Map)['title'], item.title);
+      expect((calls.last.arguments as Map)['artworkBytes'], isNull);
+      smtc.updatePlayback(
+        PlaybackState(processingState: .ready, playing: true),
+      );
+      await drain();
+      expect(loads, 1);
+      await smtc.setEnabled(false);
+      loaded.complete(Uint8List.fromList([1, 2, 3]));
+      await drain();
+      expect(calls.last.method, 'setEnabled');
+      expect(calls.last.arguments, isFalse);
+    },
+  );
+
+  test('late previous cover cannot overwrite the next video cover', () async {
+    final oldCover = Completer<Uint8List?>();
+    final newCover = Completer<Uint8List?>();
+    smtc = WindowsSmtc(
+      channel: channel,
+      supported: true,
+      artworkLoader: (uri) =>
+          uri == item.artUri ? oldCover.future : newCover.future,
+    );
+    smtc.setMediaItem(item);
+    smtc.updatePlayback(PlaybackState(processingState: .ready, playing: true));
+    await smtc.setEnabled(true);
+    smtc.setMediaItem(
+      item.copyWith(
+        id: 'next-video',
+        title: '下一条视频',
+        artUri: Uri.parse('https://example.com/next.jpg'),
+      ),
+    );
+    smtc.updatePlayback(PlaybackState(processingState: .ready, playing: true));
+    oldCover.complete(Uint8List.fromList([1]));
+    await drain();
+    expect((calls.last.arguments as Map)['artworkBytes'], isNull);
+    newCover.complete(Uint8List.fromList([2]));
+    await drain();
+    expect((calls.last.arguments as Map)['title'], '下一条视频');
+    expect((calls.last.arguments as Map)['artworkBytes'], [2]);
+  });
+
+  test('cover failure preserves title and transport commands', () async {
+    smtc = WindowsSmtc(
+      channel: channel,
+      supported: true,
+      artworkLoader: (_) async => throw const FormatException('invalid image'),
+    );
+    smtc.bind(handler);
+    smtc.setMediaItem(item);
+    smtc.updatePlayback(PlaybackState(processingState: .ready, playing: true));
+    await smtc.setEnabled(true);
+    await drain();
+    expect((calls.last.arguments as Map)['title'], item.title);
+    await command('pause');
+    expect(handler.commands, ['pause']);
+  });
 }

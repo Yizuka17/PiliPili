@@ -188,13 +188,16 @@ jobs:
             contents: write
         steps:
             - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
             - name: Verify assets, add checksums and publish
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   GH_REPO: ${{ github.repository }}
                   RELEASE_TAG: ${{ github.event.inputs.tag }}
               run: |
-                  gh release download "$RELEASE_TAG" --dir release-assets --pattern 'Pilipili_*'
+                  build_number=$(git rev-list --count HEAD)
+                  gh release download "$RELEASE_TAG" --dir release-assets --pattern "Pilipili_*+${build_number}_*"
                   apk_count=$(find release-assets -maxdepth 1 -name '*.apk' | wc -l)
                   zip_count=$(find release-assets -maxdepth 1 -name '*_portable.zip' | wc -l)
                   exe_count=$(find release-assets -maxdepth 1 -name '*_setup.exe' | wc -l)
@@ -203,4 +206,15 @@ jobs:
                   test "$exe_count" -eq 1
                   (cd release-assets && sha256sum Pilipili_* > SHA256SUMS.txt)
                   gh release upload "$RELEASE_TAG" release-assets/SHA256SUMS.txt --clobber
+                  # A replacement release can temporarily contain both builds.
+                  # Remove old installers only after all new packages are present.
+                  while IFS= read -r asset; do
+                    case "$asset" in
+                      Pilipili_*)
+                        if [ ! -f "release-assets/$asset" ]; then
+                          gh release delete-asset "$RELEASE_TAG" "$asset" --yes
+                        fi
+                        ;;
+                    esac
+                  done < <(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')
                   gh release edit "$RELEASE_TAG" --title "Pilipili ${RELEASE_TAG#v}" --notes-file ".github/release-notes/$RELEASE_TAG.md" --draft=false --latest

@@ -7,6 +7,7 @@
 #include <flutter/method_channel.h>
 #include <memory>
 #include <string>
+#include <vector>
 #include <winrt/Windows.Media.h>
 #include <winrt/Windows.UI.ViewManagement.h>
 
@@ -34,6 +35,7 @@ class WindowsIntegrations {
   std::string title_;
   std::string artist_;
   std::string artwork_;
+  std::vector<uint8_t> artwork_bytes_;
   bool metadata_set_ = false;
 };
 #endif

@@ -1,15 +1,20 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:Pilipili/services/windows_smtc_artwork.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 /// Optional Windows media controls, independent of the background audio switch.
 class WindowsSmtc {
-  WindowsSmtc({MethodChannel? channel, bool? supported})
-    : _channel = channel ?? const MethodChannel('pilipili/smtc'),
-      supported = supported ?? Platform.isWindows;
+  WindowsSmtc({
+    MethodChannel? channel,
+    bool? supported,
+    Future<Uint8List?> Function(Uri)? artworkLoader,
+  }) : _channel = channel ?? const MethodChannel('pilipili/smtc'),
+       _artworkLoader = artworkLoader ?? loadSmtcArtwork,
+       supported = supported ?? Platform.isWindows;
 
   static final instance = WindowsSmtc();
   final MethodChannel _channel;
@@ -19,6 +24,11 @@ class WindowsSmtc {
   PlaybackState _state = PlaybackState();
   AudioHandler? _handler;
   Future<void> _pending = Future.value();
+  final Future<Uint8List?> Function(Uri) _artworkLoader;
+  Uri? _artworkUri;
+  Uint8List? _artworkBytes;
+  bool _artworkRequested = false;
+  int _artworkGeneration = 0;
 
   void bind(AudioHandler handler) {
     _handler = handler;
@@ -65,6 +75,10 @@ class WindowsSmtc {
 
   Future<void> setEnabled(bool value) async {
     enabled = supported && value;
+    if (!enabled) {
+      ++_artworkGeneration;
+      _artworkRequested = _artworkBytes != null;
+    }
     if (enabled && _item != null) {
       await _sync();
     } else {
@@ -92,9 +106,20 @@ class WindowsSmtc {
       return _send('setEnabled', false);
     }
     final artwork = item.artUri;
+    if (_artworkUri != artwork) {
+      _artworkUri = artwork;
+      _artworkBytes = null;
+      _artworkRequested = false;
+      ++_artworkGeneration;
+    }
+    if (artwork != null && !_artworkRequested) {
+      _artworkRequested = true;
+      unawaited(_loadArtwork(artwork, _artworkGeneration));
+    }
     return _send('update', {
       'title': item.title,
       'artist': item.artist ?? '',
+      'artworkBytes': _artworkBytes,
       'artwork':
           artwork != null &&
               const {'http', 'https', 'file'}.contains(artwork.scheme)
@@ -107,9 +132,25 @@ class WindowsSmtc {
     });
   }
 
+  Future<void> _loadArtwork(Uri uri, int generation) async {
+    try {
+      final png = await _artworkLoader(uri)
+          .timeout(const Duration(seconds: 15));
+      if (!enabled || generation != _artworkGeneration || png == null) return;
+      _artworkBytes = png;
+      await _sync();
+    } catch (_) {
+      // A missing cover must not hide metadata or interrupt playback.
+    }
+  }
+
   void clear() {
     _item = null;
     _state = PlaybackState();
+    _artworkUri = null;
+    _artworkBytes = null;
+    _artworkRequested = false;
+    ++_artworkGeneration;
     if (enabled) unawaited(_send('setEnabled', false));
   }
 }

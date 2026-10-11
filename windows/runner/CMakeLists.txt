@@ -44,6 +44,7 @@ target_link_libraries(${BINARY_NAME} PRIVATE "dwmapi.lib")
 target_link_libraries(${BINARY_NAME} PRIVATE "comctl32.lib")
 target_link_libraries(${BINARY_NAME} PRIVATE "wbemuuid.lib" "ole32.lib" "oleaut32.lib")
 target_link_libraries(${BINARY_NAME} PRIVATE "windowsapp.lib" "runtimeobject.lib")
+target_link_libraries(${BINARY_NAME} PRIVATE "shcore.lib" "shlwapi.lib")
 target_include_directories(${BINARY_NAME} PRIVATE "${CMAKE_SOURCE_DIR}")
 
 # Run the Flutter tool portions of the build. This must not be removed.

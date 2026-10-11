@@ -11,6 +11,7 @@ import 'package:Pilipili/grpc/bilibili/main/community/reply/v1.pb.dart'
     show ReplyInfo;
 import 'package:Pilipili/http/loading_state.dart';
 import 'package:Pilipili/models/common/enum_with_label.dart';
+import 'package:Pilipili/pages/article/widgets/sliver_list.dart';
 import 'package:Pilipili/pages/common/dyn/common_dyn_controller.dart';
 import 'package:Pilipili/pages/common/fab_mixin.dart';
 import 'package:Pilipili/pages/video/reply/vote/reply_vote_item.dart';
@@ -72,6 +73,7 @@ abstract class CommonDynPageMultiState<T extends StatefulWidget>
 mixin CommonDynPageMixin<T extends StatefulWidget>
     on State<T>, TickerProvider, BaseFabMixin<T>, FabMixin<T> {
   CommonDynController get controller;
+  bool get isArticle => false;
 
   bool get horizontalPreview => !isPortrait && controller.horizontalPreview;
 
@@ -154,8 +156,9 @@ mixin CommonDynPageMixin<T extends StatefulWidget>
           if (hasVote) {
             count++;
           }
-          return SliverList.builder(
+          return ArticleSliverList.builder(
             itemCount: count,
+            isArticle: isArticle,
             itemBuilder: (context, index) {
               if (hasVote) {
                 if (index == 0) {
@@ -201,7 +204,7 @@ mixin CommonDynPageMixin<T extends StatefulWidget>
           );
         }
 
-        final child = HttpError(
+        final child = httpError(
           errMsg: '还没有评论',
           onReload: controller.onReload,
         );
@@ -217,11 +220,18 @@ mixin CommonDynPageMixin<T extends StatefulWidget>
         }
         return child;
       case Error(:final errMsg):
-        return HttpError(
+        return httpError(
           errMsg: errMsg,
           onReload: controller.onReload,
         );
     }
+  }
+
+  Widget httpError({String? errMsg, VoidCallback? onReload}) {
+    return HttpError(
+      errMsg: errMsg,
+      onReload: controller.onReload,
+    );
   }
 
   void replyReply(BuildContext context, ReplyInfo replyItem, int? id) {

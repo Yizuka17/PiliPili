@@ -43,7 +43,7 @@ import 'package:Pilipili/services/shutdown_timer_service.dart'
     show shutdownTimerService, ShutdownPanel;
 import 'package:Pilipili/utils/accounts.dart';
 import 'package:Pilipili/utils/accounts/account.dart';
-import 'package:Pilipili/utils/android/bindings.g.dart';
+import 'package:Pilipili/utils/android/android_helper.dart';
 import 'package:Pilipili/utils/connectivity_utils.dart';
 import 'package:Pilipili/utils/extension/num_ext.dart';
 import 'package:Pilipili/utils/extension/string_ext.dart';
@@ -1846,6 +1846,8 @@ class HeaderControlState extends State<HeaderControl>
                         ),
                       ),
                     ),
+                ],
+                if (plPlayerController.enableBlock)
                   Obx(
                     () => videoDetailCtr.segmentProgressList.isNotEmpty
                         ? SizedBox(
@@ -1864,7 +1866,6 @@ class HeaderControlState extends State<HeaderControl>
                           )
                         : const SizedBox.shrink(),
                   ),
-                ],
                 if (!isPortrait || isFullScreen || PlatformUtils.isDesktop) ...[
                   SizedBox(
                     width: btnWidth,
@@ -1930,8 +1931,8 @@ class HeaderControlState extends State<HeaderControl>
                     ),
                   ),
                 ),
-                if (Platform.isAndroid ||
-                    IOSPipHelper.isAvailable ||
+                if ((Platform.isAndroid && PiliAndroidHelper.isPipAvailable) ||
+                    (Platform.isIOS && IOSPipHelper.isAvailable) ||
                     (PlatformUtils.isDesktop && !isFullScreen))
                   SizedBox(
                     width: btnWidth,
@@ -1942,9 +1943,7 @@ class HeaderControlState extends State<HeaderControl>
                       onPressed: () {
                         if (PlatformUtils.isDesktop) {
                           plPlayerController.toggleDesktopPip();
-                          return;
-                        }
-                        if (Platform.isIOS || AndroidHelper.isPipAvailable) {
+                        } else {
                           plPlayerController.enterPip();
                         }
                       },

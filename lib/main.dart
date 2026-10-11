@@ -19,6 +19,7 @@ import 'package:Pilipili/services/touch_diagnostics.dart';
 import 'package:Pilipili/utils/cache_manager.dart';
 import 'package:Pilipili/utils/calc_window_position.dart';
 import 'package:Pilipili/utils/date_utils.dart';
+import 'package:Pilipili/utils/device_utils.dart';
 import 'package:Pilipili/utils/extension/core_palettes_ext.dart';
 import 'package:Pilipili/utils/extension/theme_ext.dart';
 import 'package:Pilipili/utils/font_utils.dart';
@@ -108,7 +109,7 @@ void main() async {
   } catch (e) {
     await Utils.copyText(e.toString(), needToast: false);
     if (kDebugMode) debugPrint('GStorage init error: $e');
-    exit(0);
+    DeviceUtils.exitApp();
   }
   ScaledWidgetsFlutterBinding.instance.scaleFactor = Pref.uiScale;
   await Future.wait([
@@ -147,6 +148,8 @@ void main() async {
 
   SmartDialog.config.toast = SmartConfigToast(displayType: .onlyRefresh);
 
+  FocusManager.instance.addEarlyKeyEventHandler(_onKeyEvent);
+
   if (PlatformUtils.isMobile) {
     SystemChrome.setEnabledSystemUIMode(.edgeToEdge);
     SystemChrome.setSystemUIOverlayStyle(
@@ -174,16 +177,12 @@ void main() async {
       ScreenBrightnessPlatform.instance.setAutoReset(false);
     }
   } else if (PlatformUtils.isDesktop) {
-    FocusManager.instance.addEarlyKeyEventHandler(_onKeyEvent);
-
     await windowManager.ensureInitialized();
 
     final windowOptions = WindowOptions(
       minimumSize: const Size(400, 720),
       skipTaskbar: false,
-      titleBarStyle: Pref.showWindowTitleBar
-          ? TitleBarStyle.normal
-          : TitleBarStyle.hidden,
+      titleBarStyle: Pref.showWindowTitleBar ? .normal : .hidden,
       title: Constants.appName,
     );
     windowManager.waitUntilReadyToShow(windowOptions, () async {
@@ -226,7 +225,7 @@ void main() async {
 }
 
 KeyEventResult _onKeyEvent(KeyEvent event) {
-  if (event.logicalKey == .escape && event is KeyDownEvent) {
+  if (event is KeyDownEvent && event.logicalKey == .escape) {
     _onBack();
     return .handled;
   }

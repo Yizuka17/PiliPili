@@ -5,7 +5,7 @@ import 'package:Pilipili/pages/blacklist/view.dart';
 import 'package:Pilipili/pages/bubble/view.dart';
 import 'package:Pilipili/pages/danmaku_block/view.dart';
 import 'package:Pilipili/pages/dlna/view.dart';
-import 'package:Pilipili/pages/download/view.dart';
+import 'package:Pilipili/pages/download/download/view.dart';
 import 'package:Pilipili/pages/dynamics/view.dart';
 import 'package:Pilipili/pages/dynamics_create_vote/view.dart';
 import 'package:Pilipili/pages/dynamics_detail/view.dart';

@@ -13,7 +13,7 @@ import 'package:Pilipili/plugin/pl_player/controller.dart';
 import 'package:Pilipili/plugin/pl_player/widgets/common_btn.dart';
 import 'package:Pilipili/services/shutdown_timer_service.dart'
     show shutdownTimerService;
-import 'package:Pilipili/utils/android/bindings.g.dart';
+import 'package:Pilipili/utils/android/android_helper.dart';
 import 'package:Pilipili/utils/extension/context_ext.dart';
 import 'package:Pilipili/utils/extension/size_ext.dart';
 import 'package:Pilipili/utils/extension/string_ext.dart';
@@ -165,8 +165,8 @@ class _LiveHeaderControlState extends State<LiveHeaderControl>
               ),
               onTap: widget.onSendDanmaku,
             ),
-          if (Platform.isAndroid ||
-              IOSPipHelper.isAvailable ||
+          if ((Platform.isAndroid && PiliAndroidHelper.isPipAvailable) ||
+              (Platform.isIOS && IOSPipHelper.isAvailable) ||
               (PlatformUtils.isDesktop && !isFullScreen))
             ComBtn(
               height: btnHeight,
@@ -174,9 +174,7 @@ class _LiveHeaderControlState extends State<LiveHeaderControl>
               onTap: () {
                 if (PlatformUtils.isDesktop) {
                   plPlayerController.toggleDesktopPip();
-                  return;
-                }
-                if (Platform.isIOS || AndroidHelper.isPipAvailable) {
+                } else {
                   plPlayerController.enterPip();
                 }
               },

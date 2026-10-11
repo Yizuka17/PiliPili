@@ -13,6 +13,7 @@ import 'package:Pilipili/plugin/pl_player/models/fullscreen_mode.dart';
 import 'package:Pilipili/plugin/pl_player/models/play_repeat.dart';
 import 'package:Pilipili/services/service_locator.dart';
 import 'package:Pilipili/services/playback_volume.dart';
+import 'package:Pilipili/utils/android/android_helper.dart';
 import 'package:Pilipili/utils/extension/num_ext.dart';
 import 'package:Pilipili/utils/ios/pip_helper.dart';
 import 'package:Pilipili/utils/platform_utils.dart';
@@ -216,20 +217,21 @@ List<SettingsModel> get playSettings => [
       setKey: SettingBoxKey.continuePlayInBackground,
       defaultVal: false,
     ),
-  if (Platform.isAndroid || IOSPipHelper.isAvailable)
+  if ((Platform.isAndroid && PiliAndroidHelper.isPipAvailable) ||
+      (Platform.isIOS && IOSPipHelper.isAvailable))
     SwitchModel(
       title: '后台画中画',
       subtitle: '进入后台时以小窗形式（PiP）播放',
       leading: const Icon(Icons.picture_in_picture_outlined),
       setKey: SettingBoxKey.autoPiP,
       defaultVal: false,
-      onChanged: (val) {
-        if (val &&
-            Platform.isAndroid &&
-            !videoPlayerServiceHandler!.enableBackgroundPlay) {
-          SmartDialog.showToast('建议开启后台音频服务');
-        }
-      },
+      onChanged: Platform.isAndroid
+          ? (val) {
+              if (val && !videoPlayerServiceHandler!.enableBackgroundPlay) {
+                SmartDialog.showToast('建议开启后台音频服务');
+              }
+            }
+          : null,
     ),
   // PiP on iOS only shows the video frames, without danmaku.
   if (Platform.isAndroid)

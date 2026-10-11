@@ -15,7 +15,7 @@ import 'package:Pilipili/services/logger.dart';
 import 'package:Pilipili/services/error_log_storage.dart';
 import 'package:Pilipili/utils/accounts.dart';
 import 'package:Pilipili/utils/accounts/account.dart';
-import 'package:Pilipili/utils/android/android_helper.dart';
+import 'package:Pilipili/utils/android/bindings.g.dart';
 import 'package:Pilipili/utils/app_scheme.dart';
 import 'package:Pilipili/utils/cache_manager.dart';
 import 'package:Pilipili/utils/date_utils.dart';
@@ -242,7 +242,7 @@ Commit Hash: ${BuildConfig.commitHash}''',
           ),
           if (Platform.isAndroid)
             ListTile(
-              onTap: PiliAndroidHelper.openLinkVerifySettings,
+              onTap: AndroidHelper.openLinkVerifySettings,
               leading: const Icon(MdiIcons.linkBoxOutline),
               title: const Text('打开受支持的链接'),
               trailing: Icon(Icons.arrow_forward, size: 16, color: outline),

@@ -1,5 +1,6 @@
 import 'package:Pilipili/common/widgets/button/icon_button.dart';
 import 'package:Pilipili/pages/video/introduction/ugc/widgets/menu_row.dart';
+import 'package:Pilipili/pages/setting/widgets/interactive_card_opacity.dart';
 import 'package:Pilipili/plugin/pl_player/controller.dart';
 import 'package:Pilipili/plugin/pl_player/utils/danmaku_options.dart';
 import 'package:Pilipili/utils/extension/num_ext.dart';
@@ -316,6 +317,11 @@ mixin HeaderMixin<T extends StatefulWidget> on State<T> {
                         onChanged: updateOpacity,
                       ),
                     ),
+                    if (!isLive)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: InteractiveCardOpacityControl(),
+                      ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

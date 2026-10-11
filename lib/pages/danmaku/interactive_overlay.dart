@@ -4,6 +4,7 @@ import 'package:Pilipili/http/interactive_danmaku.dart';
 import 'package:Pilipili/models_new/danmaku/interactive.dart';
 import 'package:Pilipili/pages/danmaku/interactive_card.dart';
 import 'package:Pilipili/pages/danmaku/interactive_layout.dart';
+import 'package:Pilipili/pages/danmaku/interactive_opacity.dart';
 import 'package:Pilipili/plugin/pl_player/controller.dart';
 import 'package:Pilipili/utils/accounts.dart';
 import 'package:Pilipili/utils/accounts/account.dart';
@@ -179,43 +180,45 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
         );
         final visibleFrame = frame.intersect(Offset.zero & constraints.biggest);
         final inView = visibleFrame.width > 16 && visibleFrame.height > 16;
-        return ClipRect(
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              for (final card in cards)
-                CustomSingleChildLayout(
-                  delegate: InteractiveCardLayout(
-                    Offset(
-                      widget.flipX ? 1 - card.position.dx : card.position.dx,
-                      widget.flipY ? 1 - card.position.dy : card.position.dy,
+        return InteractiveCardOpacity(
+          child: ClipRect(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                for (final card in cards)
+                  CustomSingleChildLayout(
+                    delegate: InteractiveCardLayout(
+                      Offset(
+                        widget.flipX ? 1 - card.position.dx : card.position.dx,
+                        widget.flipY ? 1 - card.position.dy : card.position.dy,
+                      ),
+                      frame,
                     ),
-                    frame,
+                    child: InteractiveDanmakuCard(
+                      key: ValueKey('$generation-${card.id}'),
+                      initial: card,
+                      visible:
+                          widget.enabled && inView && showing.contains(card.id),
+                      progress: () => widget.player.positionInMilliseconds,
+                      pause: () => widget.player.pause(),
+                      canInteract: canInteract,
+                      read: () => readCard(card, boundAccount),
+                      submit: (fresh, choice, milliseconds) async {
+                        if (boundAccount != Accounts.main) {
+                          throw const InteractiveRequestFailure('账号切换');
+                        }
+                        await InteractiveDanmakuHttp.submit(
+                          fresh,
+                          choice,
+                          milliseconds,
+                          account: boundAccount,
+                        );
+                      },
+                      notify: SmartDialog.showToast,
+                    ),
                   ),
-                  child: InteractiveDanmakuCard(
-                    key: ValueKey('$generation-${card.id}'),
-                    initial: card,
-                    visible:
-                        widget.enabled && inView && showing.contains(card.id),
-                    progress: () => widget.player.positionInMilliseconds,
-                    pause: () => widget.player.pause(),
-                    canInteract: canInteract,
-                    read: () => readCard(card, boundAccount),
-                    submit: (fresh, choice, milliseconds) async {
-                      if (boundAccount != Accounts.main) {
-                        throw const InteractiveRequestFailure('账号切换');
-                      }
-                      await InteractiveDanmakuHttp.submit(
-                        fresh,
-                        choice,
-                        milliseconds,
-                        account: boundAccount,
-                      );
-                    },
-                    notify: SmartDialog.showToast,
-                  ),
-                ),
-            ],
+              ],
+            ),
           ),
         );
       },

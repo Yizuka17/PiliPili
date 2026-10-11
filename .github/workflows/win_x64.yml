@@ -20,11 +20,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Read Flutter version
+        id: sdk_version
+        shell: pwsh
+        run: |
+          $taskSdkVersion = (Get-Content .fvmrc -Raw | ConvertFrom-Json).flutter
+          "version=$taskSdkVersion" | Add-Content -LiteralPath $env:GITHUB_OUTPUT
+
       - name: Setup flutter
         uses: subosito/flutter-action@v2
         with:
           channel: beta
-          flutter-version-file: pubspec.yaml
+          flutter-version: ${{ steps.sdk_version.outputs.version }}
 
       - name: Add fastforge and Inno Setup
         run: |

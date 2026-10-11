@@ -16,6 +16,7 @@ import 'package:Pilipili/services/download/download_service.dart';
 import 'package:Pilipili/services/logger.dart';
 import 'package:Pilipili/services/service_locator.dart';
 import 'package:Pilipili/services/touch_diagnostics.dart';
+import 'package:Pilipili/services/windows_input.dart';
 import 'package:Pilipili/utils/cache_manager.dart';
 import 'package:Pilipili/utils/calc_window_position.dart';
 import 'package:Pilipili/utils/date_utils.dart';
@@ -100,6 +101,7 @@ Future<void> _initAppPath() async {
 
 void main() async {
   ScaledWidgetsFlutterBinding.ensureInitialized();
+  WindowsInput.initialize();
   await TouchDiagnostics.initialize();
   await TouchDiagnostics.initializeNative();
   MediaKit.ensureInitialized();

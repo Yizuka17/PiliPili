@@ -11,6 +11,9 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   exclude:
+    - .fvm/**
+    - .dart_tool/**
+    - dist/**
     - lib/grpc/bilibili/**
     - lib/**/*.g.dart
     - android/**

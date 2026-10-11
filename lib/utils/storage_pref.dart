@@ -674,6 +674,9 @@ abstract final class Pref {
   static bool get enableBackgroundPlay =>
       _setting.get(SettingBoxKey.enableBackgroundPlay, defaultValue: true);
 
+  static bool get enableSmtc =>
+      _setting.get(SettingBoxKey.enableSmtc, defaultValue: false);
+
   static bool get disableLikeMsg =>
       _setting.get(SettingBoxKey.disableLikeMsg, defaultValue: false);
 

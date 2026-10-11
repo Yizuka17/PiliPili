@@ -44,6 +44,14 @@ jobs:
         shell: pwsh
         run: lib/scripts/patch.ps1 windows
 
+      - name: Analyze and test
+        shell: pwsh
+        run: |
+          flutter analyze --no-pub --no-fatal-infos lib test
+          if ($LASTEXITCODE -ne 0) { throw 'Flutter analysis failed' }
+          flutter test test --reporter expanded
+          if ($LASTEXITCODE -ne 0) { throw 'Flutter tests failed' }
+
       - name: Build Windows
         run: |
           fastforge package --platform windows --targets exe --flutter-build-args="dart-define-from-file=pili_release.json,no-pub" --skip-clean
@@ -66,6 +74,7 @@ jobs:
         with:
           tag_name: ${{ inputs.tag }}
           name: ${{ inputs.tag }}
+          draft: true
           files: |
             Pilipili_windows_*.zip
             Pilipili-Win-Setup/Pilipili_windows_*.exe

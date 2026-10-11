@@ -33,6 +33,9 @@ bool FlutterWindow::OnCreate() {
       flutter_controller_->view()->GetNativeWindow());
 
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
+  integrations_ = std::make_unique<WindowsIntegrations>(
+      flutter_controller_->engine()->messenger(), GetHandle(),
+      flutter_controller_->view()->GetNativeWindow());
 
   // flutter_controller_->engine()->SetNextFrameCallback([&]() {
   //   this->Show();
@@ -47,6 +50,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  integrations_.reset();
   brightness_.reset();
   touch_input_.reset();
   if (flutter_controller_) {
@@ -60,6 +64,7 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  if (integrations_ && integrations_->HandleMessage(message, wparam, lparam)) return 0;
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {
     std::optional<LRESULT> result =

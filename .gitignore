@@ -157,3 +157,4 @@ test*
 !tool/tests/
 !tool/tests/CMakeLists.txt
 !tool/tests/windows_touch_input_test.cpp
+!tool/tests/windows_integrations_test.cpp

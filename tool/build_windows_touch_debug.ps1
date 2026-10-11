@@ -149,6 +149,7 @@ try {
         }
         Invoke-Checked { & $cmakeForTests --build $nativeTests --config $configuration }
         Invoke-Checked { & (Join-Path $nativeTests "$configuration/windows_touch_input_test.exe") }
+        Invoke-Checked { & (Join-Path $nativeTests "$configuration/windows_integrations_test.exe") }
     }
     $runtimeFiles = @()
     $omittedLibraries = @()

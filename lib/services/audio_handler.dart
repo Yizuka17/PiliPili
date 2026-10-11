@@ -14,6 +14,7 @@ import 'package:Pilipili/pages/video/introduction/pgc/controller.dart';
 import 'package:Pilipili/pages/video/introduction/ugc/controller.dart';
 import 'package:Pilipili/plugin/pl_player/controller.dart';
 import 'package:Pilipili/plugin/pl_player/models/play_status.dart';
+import 'package:Pilipili/services/windows_smtc.dart';
 import 'package:Pilipili/utils/android/bindings.g.dart';
 import 'package:Pilipili/utils/image_utils.dart';
 import 'package:Pilipili/utils/path_utils.dart';
@@ -49,6 +50,9 @@ typedef _StatusConfig = (
 );
 
 class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
+  VideoPlayerServiceHandler() {
+    WindowsSmtc.instance.bind(this);
+  }
   static final List<MediaItem> _item = [];
   bool enableBackgroundPlay = Pref.enableBackgroundPlay;
 
@@ -110,6 +114,7 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
   }
 
   void setMediaItem(MediaItem newMediaItem) {
+    WindowsSmtc.instance.setMediaItem(newMediaItem);
     if (!enableBackgroundPlay) return;
     // if (kDebugMode) {
     //   debugPrint("此时调用栈为：");
@@ -130,7 +135,7 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
     required double speed,
     String? debugLabel,
   }) {
-    if (!enableBackgroundPlay || _item.isEmpty) {
+    if (_item.isEmpty || (!enableBackgroundPlay && !Platform.isWindows)) {
       return;
     }
 
@@ -176,41 +181,41 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
     required Duration position,
     required double speed,
   }) {
-    playbackState.add(
-      playbackState.value.copyWith(
-        processingState: state,
-        updatePosition: position,
-        speed: speed,
-        controls: [
-          if (!isLive)
-            const MediaControl(
-              androidIcon: 'drawable/ic_player_rewind_10s',
-              label: 'Rewind',
-              action: .rewind,
-            ),
-          if (playing)
-            const MediaControl(
-              androidIcon: 'drawable/ic_player_pause',
-              label: 'Pause',
-              action: .pause,
-            )
-          else
-            const MediaControl(
-              androidIcon: 'drawable/ic_player_play',
-              label: 'Play',
-              action: .play,
-            ),
-          if (!isLive)
-            const MediaControl(
-              androidIcon: 'drawable/ic_player_fast_forward_10s',
-              label: 'Fast Forward',
-              action: .fastForward,
-            ),
-        ],
-        playing: playing,
-        systemActions: const {.seek},
-      ),
+    final nextState = playbackState.value.copyWith(
+      processingState: state,
+      updatePosition: position,
+      speed: speed,
+      controls: [
+        if (!isLive)
+          const MediaControl(
+            androidIcon: 'drawable/ic_player_rewind_10s',
+            label: 'Rewind',
+            action: .rewind,
+          ),
+        if (playing)
+          const MediaControl(
+            androidIcon: 'drawable/ic_player_pause',
+            label: 'Pause',
+            action: .pause,
+          )
+        else
+          const MediaControl(
+            androidIcon: 'drawable/ic_player_play',
+            label: 'Play',
+            action: .play,
+          ),
+        if (!isLive)
+          const MediaControl(
+            androidIcon: 'drawable/ic_player_fast_forward_10s',
+            label: 'Fast Forward',
+            action: .fastForward,
+          ),
+      ],
+      playing: playing,
+      systemActions: const {.seek},
     );
+    WindowsSmtc.instance.updatePlayback(nextState);
+    if (enableBackgroundPlay) playbackState.add(nextState);
     if (Platform.isAndroid &&
         (AndroidHelper.isPipMode ||
             PlPlayerController.instance?.isAutoEnterPip == true)) {
@@ -229,7 +234,7 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
     String? artist,
     String? cover,
   }) {
-    if (!enableBackgroundPlay) return;
+    if (!enableBackgroundPlay && !Platform.isWindows) return;
     // if (kDebugMode) {
     //   debugPrint('当前调用栈为：');
     //   debugPrint(StackTrace.current);
@@ -316,26 +321,32 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
   }
 
   void onVideoDetailDispose(String herotag) {
-    if (!enableBackgroundPlay) return;
+    if (!enableBackgroundPlay && !Platform.isWindows) return;
 
     if (_item.isNotEmpty) {
       _item.removeWhere((item) => item.id.endsWith(herotag));
     }
     if (_item.isNotEmpty) {
       setMediaItem(_item.last);
-      playbackState.add(
-        playbackState.value.copyWith(processingState: .ready, playing: false),
+      final restored = playbackState.value.copyWith(
+        processingState: .ready,
+        playing: false,
       );
+      WindowsSmtc.instance.updatePlayback(restored);
+      if (enableBackgroundPlay) playbackState.add(restored);
+    } else {
+      WindowsSmtc.instance.clear();
     }
   }
 
   void clearIfNeeded() {
-    if (!enableBackgroundPlay) return;
+    if (!enableBackgroundPlay && !Platform.isWindows) return;
     if (_item.isEmpty) clear();
   }
 
   void clear() {
-    if (!enableBackgroundPlay) return;
+    WindowsSmtc.instance.clear();
+    if (!enableBackgroundPlay && !Platform.isWindows) return;
     mediaItem.add(null);
     _item.clear();
     _lastPos = null;

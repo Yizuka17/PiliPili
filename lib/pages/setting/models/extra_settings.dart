@@ -30,6 +30,7 @@ import 'package:Pilipili/pages/setting/widgets/select_dialog.dart';
 import 'package:Pilipili/pages/setting/widgets/slider_dialog.dart';
 import 'package:Pilipili/pages/video/reply/widgets/reply_item_grpc.dart';
 import 'package:Pilipili/services/download/download_service.dart';
+import 'package:Pilipili/services/windows_smtc.dart';
 import 'package:Pilipili/utils/accounts.dart';
 import 'package:Pilipili/utils/android/bindings.g.dart';
 import 'package:Pilipili/utils/extension/num_ext.dart';
@@ -55,6 +56,15 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:material_ui/material_ui.dart' hide RefreshIndicator;
 
 List<SettingsModel> get extraSettings => [
+  if (Platform.isWindows)
+    SwitchModel(
+      title: '接入 SMTC',
+      subtitle: '在 Windows 媒体控件中显示播放信息，并使用系统媒体按键控制播放',
+      leading: const Icon(Icons.music_video_outlined),
+      setKey: SettingBoxKey.enableSmtc,
+      defaultVal: false,
+      onChanged: WindowsSmtc.instance.setEnabled,
+    ),
   SwitchModel(
     title: '悬停高亮',
     subtitle: '鼠标悬停时高亮按钮、卡片和菜单',

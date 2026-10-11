@@ -20,3 +20,17 @@ target_link_libraries(windows_touch_input_test PRIVATE user32 comctl32 wbemuuid 
 add_custom_command(TARGET windows_touch_input_test POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EPHEMERAL}/flutter_windows.dll"
   "$<TARGET_FILE_DIR:windows_touch_input_test>/flutter_windows.dll")
+
+add_executable(windows_integrations_test windows_integrations_test.cpp
+  "${PILI_WORKSPACE}/windows/runner/windows_integrations.cpp")
+target_compile_features(windows_integrations_test PRIVATE cxx_std_17)
+target_compile_definitions(windows_integrations_test PRIVATE UNICODE _UNICODE NOMINMAX _HAS_EXCEPTIONS=0)
+target_compile_options(windows_integrations_test PRIVATE /W4 /WX /EHsc /wd4100)
+target_include_directories(windows_integrations_test PRIVATE
+  "${PILI_WORKSPACE}/windows/runner" "${EPHEMERAL}/cpp_client_wrapper/include" "${EPHEMERAL}")
+target_link_libraries(windows_integrations_test PRIVATE user32 windowsapp runtimeobject ole32
+  "${PILI_WORKSPACE}/build/windows/x64/flutter/$<CONFIG>/flutter_wrapper_app.lib"
+  "${EPHEMERAL}/flutter_windows.dll.lib")
+add_custom_command(TARGET windows_integrations_test POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${EPHEMERAL}/flutter_windows.dll"
+  "$<TARGET_FILE_DIR:windows_integrations_test>/flutter_windows.dll")

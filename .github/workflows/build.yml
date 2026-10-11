@@ -127,6 +127,7 @@ jobs:
               with:
                   tag_name: ${{ github.event.inputs.tag }}
                   name: ${{ github.event.inputs.tag }}
+                  draft: true
                   files: Pilipili_android_*.apk
 
             - name: 上传
@@ -177,3 +178,29 @@ jobs:
         permissions: write-all
         with:
             tag: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || '' }}
+
+    publish:
+        name: Publish Android and Windows release
+        needs: [android, win_x64]
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag != '' && github.event.inputs.build_android == 'true' && github.event.inputs.build_win_x64 == 'true' }}
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v7
+            - name: Verify assets, add checksums and publish
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GH_REPO: ${{ github.repository }}
+                  RELEASE_TAG: ${{ github.event.inputs.tag }}
+              run: |
+                  gh release download "$RELEASE_TAG" --dir release-assets --pattern 'Pilipili_*'
+                  apk_count=$(find release-assets -maxdepth 1 -name '*.apk' | wc -l)
+                  zip_count=$(find release-assets -maxdepth 1 -name '*_portable.zip' | wc -l)
+                  exe_count=$(find release-assets -maxdepth 1 -name '*_setup.exe' | wc -l)
+                  test "$apk_count" -eq 3
+                  test "$zip_count" -eq 1
+                  test "$exe_count" -eq 1
+                  (cd release-assets && sha256sum Pilipili_* > SHA256SUMS.txt)
+                  gh release upload "$RELEASE_TAG" release-assets/SHA256SUMS.txt --clobber
+                  gh release edit "$RELEASE_TAG" --title "Pilipili ${RELEASE_TAG#v}" --notes-file ".github/release-notes/$RELEASE_TAG.md" --draft=false --latest

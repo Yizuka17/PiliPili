@@ -1,6 +1,9 @@
 import 'package:Pilipili/http/constants.dart';
 
 abstract final class Api {
+  static const String interactiveDanmakuView = '/x/v2/dm/web/view';
+  static const String interactiveDanmakuVote = '/x/v2/dm/command/vote/post';
+  static const String interactiveDanmakuGrade = '/x/v2/dm/command/grade/post';
   // 推荐视频
   static const String recommendListApp =
       '${HttpString.appBaseUrl}/x/v2/feed/index';

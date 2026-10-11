@@ -23,7 +23,7 @@ add_custom_command(TARGET windows_touch_input_test POST_BUILD
 
 add_executable(windows_integrations_test windows_integrations_test.cpp
   "${PILI_WORKSPACE}/windows/runner/windows_integrations.cpp")
-target_compile_features(windows_integrations_test PRIVATE cxx_std_17)
+target_compile_features(windows_integrations_test PRIVATE cxx_std_20)
 target_compile_definitions(windows_integrations_test PRIVATE UNICODE _UNICODE NOMINMAX _HAS_EXCEPTIONS=0)
 target_compile_options(windows_integrations_test PRIVATE /W4 /WX /EHsc /wd4100)
 target_include_directories(windows_integrations_test PRIVATE

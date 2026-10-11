@@ -1,0 +1,24 @@
+diff --git a/lib/src/utils/run_process.dart b/lib/src/utils/run_process.dart
+--- a/lib/src/utils/run_process.dart
++++ b/lib/src/utils/run_process.dart
+@@ -3,6 +3,7 @@
+ // BSD-style license that can be found in the LICENSE file.
+ 
+ import 'dart:async';
++import 'dart:convert';
+ import 'dart:io';
+ 
+ import 'package:logging/logging.dart';
+@@ -65,10 +66,10 @@
+     // arguments: on Windows, programs expand wildcards themselves; `cmd.exe`
+     // performs no glob expansion.
+   );
+ 
+-  final stdoutSub = process.stdout.listen((List<int> data) {
++  final decoder = arguments.contains('-utf8') ? utf8.decoder : systemEncoding.decoder;
++  final stdoutSub = process.stdout.transform(decoder).listen((String decoded) {
+     try {
+-      final decoded = systemEncoding.decode(data);
+       logger?.log(stdoutLogLevel, decoded);
+       if (captureOutput) {
+         stdoutBuffer.write(decoded);

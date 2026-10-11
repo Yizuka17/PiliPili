@@ -258,6 +258,20 @@ switch ($platform.ToLower()) {
 flutter pub get
 if ($LASTEXITCODE -ne 0) { throw 'flutter pub get failed' }
 
+if ($platform.ToLower() -eq 'windows') {
+    # vswhere emits UTF-8 when requested; decoding it using the Windows code
+    # page corrupts localized Visual Studio metadata in native-assets builds.
+    $taskPackageConfigPath = Join-Path $env:GITHUB_WORKSPACE '.dart_tool/package_config.json'
+    $taskPackageConfig = Get-Content -LiteralPath $taskPackageConfigPath -Raw | ConvertFrom-Json
+    $taskNativeToolchain = $taskPackageConfig.packages | Where-Object name -eq 'native_toolchain_c'
+    if ($taskNativeToolchain) {
+        $taskPackageUri = [System.Uri]::new([System.Uri]::new($taskPackageConfigPath), $taskNativeToolchain.rootUri)
+        Set-Location $taskPackageUri.LocalPath
+        Apply-ProjectPatch "$env:GITHUB_WORKSPACE/lib/scripts/native_toolchain_utf8.patch"
+        Set-Location $env:GITHUB_WORKSPACE
+    }
+}
+
 $MaterialUiDir = Get-ChildItem "$PubCacheDir/hosted/pub.dev" -Directory |
     Where-Object { $_.Name -like "material_ui-*" } |
     Select-Object -Last 1

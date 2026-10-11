@@ -73,7 +73,8 @@ class WindowsSmtc {
   }
 
   void setMediaItem(MediaItem item) {
-    if (_item?.id != item.id) _state = PlaybackState();
+    // Playback may start before the video's asynchronous metadata arrives.
+    if (_item != null && _item!.id != item.id) _state = PlaybackState();
     _item = item;
     if (enabled) unawaited(_sync());
   }

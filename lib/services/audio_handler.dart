@@ -135,7 +135,7 @@ class VideoPlayerServiceHandler extends BaseAudioHandler with SeekHandler {
     required double speed,
     String? debugLabel,
   }) {
-    if (_item.isEmpty || (!enableBackgroundPlay && !Platform.isWindows)) {
+    if (!Platform.isWindows && (_item.isEmpty || !enableBackgroundPlay)) {
       return;
     }
 

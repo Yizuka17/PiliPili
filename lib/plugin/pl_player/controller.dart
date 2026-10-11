@@ -1057,7 +1057,8 @@ class PlPlayerController with BlockConfigMixin, AudioNormalizationMixin {
         final posInSeconds = position.inSeconds;
 
         if (posInSeconds != this.position.value) {
-          if (posInSeconds == 0 && playerStatus.isPlaying) {
+          if (Platform.isWindows ||
+              (posInSeconds == 0 && playerStatus.isPlaying)) {
             _updatePlaybackState(position: position);
           }
 

@@ -133,6 +133,7 @@ void main() async {
       if (Platform.isIOS) IOSPipHelper.init(),
     ]);
   } else if (Platform.isWindows) {
+    await setupServiceLocator();
     if (await WebViewEnvironment.getAvailableVersion() != null) {
       webViewEnvironment = await WebViewEnvironment.create(
         settings: WebViewEnvironmentSettings(

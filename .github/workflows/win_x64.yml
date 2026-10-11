@@ -33,9 +33,8 @@ jobs:
           channel: beta
           flutter-version: ${{ steps.sdk_version.outputs.version }}
 
-      - name: Add fastforge and Inno Setup
+      - name: Add Inno Setup
         run: |
-          dart pub global activate fastforge
           choco install innosetup
 
       - name: Add Chinese language file for Inno Setup
@@ -61,14 +60,27 @@ jobs:
 
       - name: Build Windows
         run: |
-          fastforge package --platform windows --targets exe --flutter-build-args="dart-define-from-file=pili_release.json,no-pub" --skip-clean
+          flutter build windows --release --dart-define-from-file=pili_release.json --no-pub
+          if ($LASTEXITCODE -ne 0) { throw 'Windows release compilation failed' }
+
+      - name: Add runtime and package installer
+        shell: pwsh
+        run: |
+          $taskInstance = Get-Content build/windows/x64/CMakeCache.txt | Where-Object { $_.StartsWith('CMAKE_GENERATOR_INSTANCE:INTERNAL=') } | Select-Object -First 1
+          $taskVisualStudio = ($taskInstance -split '=', 2)[1]
+          tool/prepare_windows_runtime.ps1 -Bundle build/windows/x64/runner/Release -VisualStudioRoot $taskVisualStudio
+          $taskMetadata = Get-Content pili_release.json -Raw | ConvertFrom-Json
+          $taskManifest = @{ mode = 'release'; touchLoggingEnabled = $false; appVersion = $taskMetadata.'pili.name' + '+' + $taskMetadata.'pili.code'; appCommit = $taskMetadata.'pili.hash' }
+          $taskManifest | ConvertTo-Json | Set-Content build/windows/x64/runner/Release/release-build.json -Encoding utf8
+          New-Item -ItemType Directory -Path .fvm -Force | Out-Null
+          tool/package_windows_release.ps1 -InnoCompiler "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe"
 
       - name: Prepare Upload
         run: |
           mkdir -p Release/Pilipili-Win
           mkdir -p Pilipili-Win-Setup
           mv build/windows/x64/runner/Release/* Release/Pilipili-Win/
-          mv dist/**/*.exe Pilipili-Win-Setup/Pilipili_windows_${{env.version}}_x64_setup.exe
+          mv dist/*.exe Pilipili-Win-Setup/Pilipili_windows_${{env.version}}_x64_setup.exe
 
       - name: Compress
         run: |

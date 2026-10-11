@@ -1,0 +1,76 @@
+name: Prepare Windows runtime release packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release to package
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Download verified release build
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          $taskRelease = gh release view $env:RELEASE_TAG --json assets | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Release lookup failed' }
+          $taskPortable = @($taskRelease.assets | Where-Object name -Like '*_x64_portable.zip')
+          if ($taskPortable.Count -ne 1) { throw 'Expected one Windows portable archive' }
+          if ($taskPortable[0].name -notmatch '^Pilipili_windows_(\d+\.\d+\.\d+\+\d+)_x64_portable.zip$') { throw 'Unexpected Windows release filename' }
+          $taskAppVersion = $Matches[1]
+          "version=$taskAppVersion" | Add-Content -LiteralPath $env:GITHUB_ENV
+          gh release download $env:RELEASE_TAG --dir original --pattern 'Pilipili_*' --pattern SHA256SUMS.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Release asset download failed' }
+          foreach ($taskLine in Get-Content original/SHA256SUMS.txt) {
+            $taskParts = $taskLine -split '\s+', 2
+            $taskAssetPath = Join-Path original $taskParts[1]
+            if ((Get-FileHash -LiteralPath $taskAssetPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskParts[0]) { throw 'Original asset checksum mismatch' }
+          }
+          Expand-Archive -LiteralPath (Join-Path original $taskPortable[0].name) -DestinationPath staging
+          New-Item -ItemType Directory -Path build/windows/x64/runner/Release -Force | Out-Null
+          Copy-Item staging/Pilipili-Win/* build/windows/x64/runner/Release -Recurse
+          New-Item -ItemType Directory -Path .fvm -Force | Out-Null
+          $taskManifest = @{ mode = 'release'; touchLoggingEnabled = $false; appVersion = $taskAppVersion; appCommit = (git rev-parse $env:RELEASE_TAG).Trim() }
+          $taskManifest | ConvertTo-Json | Set-Content build/windows/x64/runner/Release/release-build.json -Encoding utf8
+      - name: Add release runtime dependencies
+        shell: pwsh
+        run: |
+          $taskVswhere = "${env:ProgramFiles(x86)}/Microsoft Visual Studio/Installer/vswhere.exe"
+          $taskVisualStudio = (& $taskVswhere -latest -products '*' -property installationPath).Trim()
+          tool/prepare_windows_runtime.ps1 -Bundle build/windows/x64/runner/Release -VisualStudioRoot $taskVisualStudio
+      - name: Setup Inno compiler
+        shell: pwsh
+        run: choco install innosetup --yes --no-progress
+      - name: Package installer and portable archive
+        shell: pwsh
+        run: |
+          tool/package_windows_release.ps1 -InnoCompiler "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe"
+          New-Item -ItemType Directory -Path .fvm/windows-package/Pilipili-Win -Force | Out-Null
+          Copy-Item build/windows/x64/runner/Release/* .fvm/windows-package/Pilipili-Win -Recurse
+          Compress-Archive -Path .fvm/windows-package/Pilipili-Win -DestinationPath "dist/Pilipili_windows_$env:version`_x64_portable.zip"
+          Copy-Item "dist/Pilipili_windows_$env:version`_x64_portable.zip" original -Force
+          Copy-Item "dist/Pilipili_windows_$env:version`_x64_setup.exe" original -Force
+          $taskChecksums = Get-ChildItem original/Pilipili_* -File | Sort-Object Name | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name }
+          [IO.File]::WriteAllText((Join-Path $PWD 'original/SHA256SUMS.txt'), ($taskChecksums -join "`n") + "`n", [Text.Encoding]::ASCII)
+      - name: Update release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          gh release upload $env:RELEASE_TAG "dist/Pilipili_windows_$env:version`_x64_portable.zip" "dist/Pilipili_windows_$env:version`_x64_setup.exe" original/SHA256SUMS.txt --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Release upload failed' }

@@ -7,6 +7,7 @@ import 'package:Pilipili/pages/main/controller.dart';
 import 'package:Pilipili/pages/setting/models/model.dart';
 import 'package:Pilipili/pages/setting/pages/fullscreen_sc_size.dart';
 import 'package:Pilipili/pages/setting/widgets/select_dialog.dart';
+import 'package:Pilipili/pages/setting/widgets/interactive_card_opacity.dart';
 import 'package:Pilipili/pages/setting/widgets/slider_dialog.dart';
 import 'package:Pilipili/plugin/pl_player/models/bottom_progress_behavior.dart';
 import 'package:Pilipili/plugin/pl_player/models/fullscreen_mode.dart';
@@ -32,6 +33,28 @@ List<SettingsModel> get playSettings => [
     leading: Icon(CustomIcons.dm_settings),
     setKey: SettingBoxKey.enableShowDanmaku,
     defaultVal: true,
+  ),
+  NormalModel(
+    title: '互动卡片不透明度',
+    leading: const Icon(Icons.opacity_outlined),
+    getSubtitle: () =>
+        '投票、评分卡片 ${(Pref.interactiveCardOpacity * 100).round()}%',
+    onTap: (context, refresh) async {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('投票与评分卡片'),
+          content: const InteractiveCardOpacityControl(),
+          actions: [
+            TextButton(
+              onPressed: Navigator.of(context).pop,
+              child: const Text('关闭'),
+            ),
+          ],
+        ),
+      );
+      refresh();
+    },
   ),
   if (PlatformUtils.isMobile)
     const SwitchModel(

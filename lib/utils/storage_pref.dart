@@ -813,6 +813,14 @@ abstract final class Pref {
   static double get danmakuOpacity =>
       _setting.get(SettingBoxKey.danmakuOpacity, defaultValue: 1.0);
 
+  static const double defaultInteractiveCardOpacity = 0.9;
+  static double get interactiveCardOpacity {
+    final value = _setting.get(SettingBoxKey.interactiveCardOpacity);
+    return value is num && value.isFinite
+        ? value.toDouble().clamp(0.0, 1.0)
+        : defaultInteractiveCardOpacity;
+  }
+
   static double get danmakuFontScale => _setting.get(
     SettingBoxKey.danmakuFontScale,
     defaultValue: PlatformUtils.isMobile ? 1.0 : 1.4,

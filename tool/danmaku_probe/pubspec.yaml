@@ -1,0 +1,56 @@
+name: pilipili_danmaku_probe
+description: Native Windows test page for interactive danmaku on real videos.
+publish_to: none
+version: 0.1.0+1
+environment:
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: 3.49.0-0.2.pre
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: 1.5.0
+  cupertino_ui: 1.1.1
+  media_kit: 1.1.11
+  media_kit_libs_video: 1.0.5
+  media_kit_video: 1.2.5
+dependency_overrides:
+  media_kit:
+    git:
+      url: https://github.com/My-Responsitories/media-kit.git
+      path: media_kit
+      ref: 73771ec38176be2d984a3049c28177bce23b54a0
+  media_kit_libs_android_video:
+    git:
+      url: https://github.com/My-Responsitories/media-kit.git
+      path: libs/android/media_kit_libs_android_video
+      ref: 73771ec38176be2d984a3049c28177bce23b54a0
+  media_kit_libs_ios_video:
+    git:
+      url: https://github.com/My-Responsitories/media-kit.git
+      path: libs/ios/media_kit_libs_ios_video
+      ref: 73771ec38176be2d984a3049c28177bce23b54a0
+  media_kit_libs_video:
+    git:
+      url: https://github.com/My-Responsitories/media-kit.git
+      path: libs/universal/media_kit_libs_video
+      ref: 73771ec38176be2d984a3049c28177bce23b54a0
+  media_kit_libs_windows_video:
+    git:
+      url: https://github.com/My-Responsitories/media-kit.git
+      path: libs/windows/media_kit_libs_windows_video
+      ref: 73771ec38176be2d984a3049c28177bce23b54a0
+  media_kit_native_event_loop:
+    git:
+      url: https://github.com/My-Responsitories/media-kit.git
+      path: media_kit_native_event_loop
+      ref: 73771ec38176be2d984a3049c28177bce23b54a0
+  media_kit_video:
+    git:
+      url: https://github.com/bggRGjQaUbCoE/media-kit.git
+      path: media_kit_video
+      ref: fd8421d21eade4d6d12de137fa7df902fec20292
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true

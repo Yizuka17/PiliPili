@@ -31,6 +31,7 @@ import 'package:Pilipili/models_new/video/video_detail/episode.dart' as ugc;
 import 'package:Pilipili/models_new/video/video_detail/ugc_season.dart';
 import 'package:Pilipili/pages/common/common_intro_controller.dart';
 import 'package:Pilipili/pages/danmaku/danmaku_model.dart';
+import 'package:Pilipili/pages/danmaku/interactive_overlay.dart';
 import 'package:Pilipili/pages/live_room/widgets/bottom_control.dart'
     as live_bottom;
 import 'package:Pilipili/pages/video/controller.dart';
@@ -2021,6 +2022,56 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                   )
                 : const SizedBox.shrink();
           }),
+
+        if (!isLive &&
+            widget.videoDetailController != null &&
+            !widget.videoDetailController!.isFileSource)
+          Positioned.fill(
+            key: const ValueKey('interactive-danmaku-layer'),
+            child: Obx(() {
+              final fit = plPlayerController.videoFit.value;
+              final flipX = plPlayerController.flipX.value;
+              final flipY = plPlayerController.flipY.value;
+              final enabled =
+                  plPlayerController.enableShowDanmaku.value &&
+                  !plPlayerController.controlsLock.value &&
+                  !plPlayerController.isPipMode;
+              final output = plPlayerController.videoController;
+              if (output == null) return const SizedBox.shrink();
+              final detail = widget.videoDetailController!;
+              final cid = detail.cid.value;
+              return ListenableBuilder(
+                listenable: Listenable.merge([
+                  output.rect,
+                  _transformationController,
+                ]),
+                builder: (context, _) {
+                  final rect = output.rect.value;
+                  final dpr = MediaQuery.devicePixelRatioOf(context);
+                  final height = (rect?.height ?? 375) / dpr;
+                  final size = Size(
+                    fit.aspectRatio == null
+                        ? (rect?.width ?? 667) / dpr
+                        : height * fit.aspectRatio!,
+                    height,
+                  );
+                  return InteractiveDanmakuOverlay(
+                    key: ValueKey('interactive-${detail.aid}-$cid'),
+                    aid: detail.aid,
+                    cid: cid,
+                    player: plPlayerController,
+                    videoSize: size,
+                    fit: fit.boxFit,
+                    alignment: widget.alignment,
+                    enabled: enabled,
+                    transform: _transformationController.value,
+                    flipX: flipX,
+                    flipY: flipY,
+                  );
+                },
+              );
+            }),
+          ),
       ],
     );
     if (PlatformUtils.isDesktop) {

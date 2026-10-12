@@ -153,8 +153,6 @@ $patches = @($ModalBarrierPatch, $TextSelectionPatch, $MouseCursorPatch,
             $TextPainterPatch, $SliverPatch, $RefreshIndicatorPatch,
             $DoubleTapGesturePatch)
 
-$patches += 'lib/scripts/windows_text_input.patch'
-
 switch ($platform.ToLower()) {
     "android" {
         $patches += $BottomSheetAndroidPatch

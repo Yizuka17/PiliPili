@@ -53,10 +53,8 @@ int main() {
   if (!parent || !view) return 1;
   Messenger messenger;
   {
-    WindowsIntegrations integrations(&messenger, parent, view);
+    WindowsIntegrations integrations(&messenger, parent);
     if (!messenger.Call("pilipili/smtc", "setEnabled", Value(false))) return 2;
-    bool shown = true;
-    if (!messenger.Call("pilipili/windows_input", "showKeyboardIfHidden", Value(), &shown) || shown) return 3;
     if (!messenger.Call("pilipili/smtc", "update", Value(flutter::EncodableMap{
         {Value("title"), Value("Test title")}, {Value("artist"), Value("Test author")},
         {Value("artwork"), Value("")}, {Value("playing"), Value(true)},
@@ -113,6 +111,6 @@ int main() {
   if (!messenger.handlers.empty()) return 9;
   DestroyWindow(parent);
   winrt::uninit_apartment();
-  std::cout << "Native SMTC metadata, PNG artwork stream, transport commands, disable and cleanup passed; background keyboard request rejected\n";
+  std::cout << "Native SMTC metadata, PNG artwork stream, transport commands, disable and cleanup passed\n";
   return 0;
 }

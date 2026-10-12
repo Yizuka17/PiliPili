@@ -1,6 +1,5 @@
 #include "windows_integrations.h"
 
-#include <inputpaneinterop.h>
 #include <SystemMediaTransportControlsInterop.h>
 #include <shcore.h>
 #include <shlwapi.h>
@@ -38,25 +37,8 @@ bool Boolean(const Map& data, const char* key) {
 }  // namespace
 
 WindowsIntegrations::WindowsIntegrations(flutter::BinaryMessenger* messenger,
-                                         HWND parent, HWND view)
-    : parent_(parent), view_(view) {
-  input_channel_ = std::make_unique<flutter::MethodChannel<Value>>(
-      messenger, "pilipili/windows_input", &flutter::StandardMethodCodec::GetInstance());
-  input_channel_->SetMethodCallHandler([this](const auto& call, auto result) {
-    if (call.method_name() == "isKeyboardVisible") {
-      const auto visible = KeyboardVisible();
-      result->Success(visible ? Value(*visible) : Value());
-    } else if (call.method_name() == "showKeyboardIfHidden") {
-      // Recheck on the platform thread in case automatic activation finished
-      // while the Dart visibility response was in flight.
-      const auto visible = KeyboardVisible();
-      result->Success(Value(visible && !*visible && Keyboard(true)));
-    } else if (call.method_name() == "hideKeyboard") {
-      result->Success(Value(Keyboard(false)));
-    } else {
-      result->NotImplemented();
-    }
-  });
+                                         HWND parent)
+    : parent_(parent) {
   media_channel_ = std::make_unique<flutter::MethodChannel<Value>>(
       messenger, "pilipili/smtc", &flutter::StandardMethodCodec::GetInstance());
   media_channel_->SetMethodCallHandler([this](const auto& call, auto result) {
@@ -81,7 +63,6 @@ WindowsIntegrations::WindowsIntegrations(flutter::BinaryMessenger* messenger,
 }
 
 WindowsIntegrations::~WindowsIntegrations() {
-  input_channel_->SetMethodCallHandler(nullptr);
   media_channel_->SetMethodCallHandler(nullptr);
   if (controls_) {
     try {
@@ -90,42 +71,6 @@ WindowsIntegrations::~WindowsIntegrations() {
       controls_.IsEnabled(false);
       controls_.DisplayUpdater().ClearAll();
     } catch (const winrt::hresult_error&) {}
-  }
-}
-
-std::optional<bool> WindowsIntegrations::KeyboardVisible() {
-  if (GetAncestor(GetForegroundWindow(), GA_ROOT) != GetAncestor(parent_, GA_ROOT)) return std::nullopt;
-  try {
-    if (!framework_input_pane_) {
-      framework_input_pane_ = winrt::create_instance<IFrameworkInputPane>(
-          __uuidof(FrameworkInputPane));
-    }
-    RECT location{};
-    winrt::check_hresult(framework_input_pane_->Location(&location));
-    return !IsRectEmpty(&location);
-  } catch (const winrt::hresult_error&) {
-    // Unknown visibility must not trigger an unsolicited show request.
-    return std::nullopt;
-  }
-}
-
-bool WindowsIntegrations::Keyboard(bool show) {
-  // Do not reopen the keyboard or hide another app's keyboard after a focus change.
-  if (GetAncestor(GetForegroundWindow(), GA_ROOT) != GetAncestor(parent_, GA_ROOT)) return false;
-  try {
-    if (!input_pane_) {
-      const auto interop = winrt::get_activation_factory<
-          winrt::Windows::UI::ViewManagement::InputPane, IInputPaneInterop>();
-      winrt::check_hresult(interop->GetForWindow(
-          view_, winrt::guid_of<winrt::Windows::UI::ViewManagement::InputPane>(),
-          winrt::put_abi(input_pane_)));
-    }
-    if (show) {
-      return input_pane_.TryShow();
-    }
-    return input_pane_.TryHide();
-  } catch (const winrt::hresult_error&) {
-    return false;
   }
 }
 

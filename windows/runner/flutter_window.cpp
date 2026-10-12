@@ -34,8 +34,7 @@ bool FlutterWindow::OnCreate() {
 
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
   integrations_ = std::make_unique<WindowsIntegrations>(
-      flutter_controller_->engine()->messenger(), GetHandle(),
-      flutter_controller_->view()->GetNativeWindow());
+      flutter_controller_->engine()->messenger(), GetHandle());
 
   // flutter_controller_->engine()->SetNextFrameCallback([&]() {
   //   this->Show();

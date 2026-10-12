@@ -29,6 +29,7 @@ abstract class CommonPublishPageState<T extends CommonPublishPage>
     with WidgetsBindingObserver {
   late bool _paused = false;
   late final FocusNode focusNode;
+  Timer? _focusTimer;
   late final controller = ChatBottomPanelContainerController<PanelType>(
     uiScale: Pref.uiScale,
   );
@@ -81,6 +82,7 @@ abstract class CommonPublishPageState<T extends CommonPublishPage>
 
   @override
   void dispose() {
+    _focusTimer?.cancel();
     focusNode.removeListener(_onFocusChanged);
     if (!hasPub) {
       onSave();
@@ -94,13 +96,14 @@ abstract class CommonPublishPageState<T extends CommonPublishPage>
   }
 
   void _safeRequestFocus() {
-    if (mounted) {
+    if (mounted && ModalRoute.of(context)?.isCurrent != false) {
       focusNode.requestFocus();
     }
   }
 
   void _requestFocus({Duration duration = const Duration(microseconds: 200)}) {
-    Timer(duration, _safeRequestFocus);
+    _focusTimer?.cancel();
+    _focusTimer = Timer(duration, _safeRequestFocus);
   }
 
   @override

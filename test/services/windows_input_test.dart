@@ -173,7 +173,7 @@ void main() {
         call,
       ) async {
         calls.add(call.method);
-        return true;
+        return call.method != 'isKeyboardVisible';
       });
       final observer = WindowsTouchKeyboard(channel: channel);
       TextInput.addInputControl(observer);
@@ -203,9 +203,9 @@ void main() {
       );
       await tester.tap(find.byType(TextField).first);
       await tester.pump();
-      expect(calls, isNot(contains('showKeyboard')));
-      await tester.pump(const Duration(milliseconds: 70));
-      expect(calls, contains('showKeyboard'));
+      expect(calls, isNot(contains('showKeyboardIfHidden')));
+      await tester.pump(const Duration(milliseconds: 650));
+      expect(calls, contains('showKeyboardIfHidden'));
       expect(tester.testTextInput.hasAnyClients, isTrue);
       calls.clear();
       second.requestFocus();
@@ -219,10 +219,9 @@ void main() {
       calls.clear();
       first.requestFocus();
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 70));
-      expect(calls, contains('showKeyboard'));
+      await tester.pump(const Duration(milliseconds: 650));
+      expect(calls, contains('showKeyboardIfHidden'));
       TextInput.removeInputControl(observer);
-      observer.dispose();
     },
   );
 
@@ -259,7 +258,7 @@ void main() {
     focus.unfocus();
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    expect(calls, isNot(contains('showKeyboard')));
+    expect(calls, isNot(contains('showKeyboardIfHidden')));
     expect(calls, contains('hideKeyboard'));
   });
 

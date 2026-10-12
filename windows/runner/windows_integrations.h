@@ -2,10 +2,12 @@
 #define RUNNER_WINDOWS_INTEGRATIONS_H_
 
 #include <windows.h>
+#include <shobjidl.h>
 #include <flutter/binary_messenger.h>
 #include <flutter/encodable_value.h>
 #include <flutter/method_channel.h>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 #include <winrt/Windows.Media.h>
@@ -21,6 +23,7 @@ class WindowsIntegrations {
 
  private:
   bool Keyboard(bool show);
+  std::optional<bool> KeyboardVisible();
   void EnsureMediaControls();
   void UpdateMedia(const flutter::EncodableMap& data);
   void SetEnabled(bool enabled);
@@ -29,6 +32,7 @@ class WindowsIntegrations {
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> input_channel_;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> media_channel_;
   winrt::Windows::UI::ViewManagement::InputPane input_pane_{nullptr};
+  winrt::com_ptr<IFrameworkInputPane> framework_input_pane_;
   winrt::Windows::Media::SystemMediaTransportControls controls_{nullptr};
   winrt::event_token button_token_{};
   winrt::event_token seek_token_{};

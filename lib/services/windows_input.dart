@@ -4,6 +4,9 @@ import 'dart:ui';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/gestures.dart';
+import 'package:Pilipili/common/widgets/flutter/text_field/editable_text.dart'
+    as rich;
 
 /// Repairs only the malformed key sequence emitted by Windows clipboard history.
 /// Normal keyboard events and the engine's zero-valued focus probes pass through.
@@ -99,28 +102,66 @@ class WindowsPasteKeyNormalizer {
 /// Keeping the platform control installed preserves Chinese IME and editing.
 class WindowsTouchKeyboard with TextInputControl {
   WindowsTouchKeyboard({MethodChannel? channel})
-    : _channel = channel ?? const MethodChannel('pilipili/windows_input');
+    : _channel = channel ?? const MethodChannel('pilipili/windows_input') {
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_onPointer);
+  }
   final MethodChannel _channel;
   bool _attached = false;
+  bool _hadInputConnection = false;
   TextInputClient? _client;
   Timer? _showTimer;
   Timer? _hideTimer;
   int _generation = 0;
+  final _clock = Stopwatch()..start();
+  Duration? _touchTime;
+
+  void _onPointer(PointerEvent event) {
+    if (event is! PointerDownEvent) return;
+    // Cancel before a dismissing tap's route/focus changes are processed.
+    ++_generation;
+    _showTimer?.cancel();
+    _touchTime = switch (event.kind) {
+      PointerDeviceKind.touch || PointerDeviceKind.stylus => _clock.elapsed,
+      _ => null,
+    };
+    if (_hadInputConnection && !_editing) hide();
+  }
 
   bool get _editing {
     if (!_attached) return false;
     final client = _client;
-    return client is! EditableTextState || client.widget.focusNode.hasFocus;
+    final (State, FocusNode, bool)? editing = switch (client) {
+      EditableTextState() => (
+        client,
+        client.widget.focusNode,
+        client.widget.readOnly,
+      ),
+      rich.EditableTextState() => (
+        client,
+        client.widget.focusNode,
+        client.widget.readOnly,
+      ),
+      _ => null,
+    };
+    if (editing == null) return false;
+    final (state, focus, readOnly) = editing;
+    if (!state.mounted || !focus.hasFocus || readOnly) return false;
+    final route = ModalRoute.of(state.context);
+    return route == null ||
+        (route.isCurrent &&
+            route.isActive &&
+            route.animation?.status != AnimationStatus.reverse);
   }
 
-  Future<void> _invoke(String method) async {
+  Future<bool?> _invoke(String method) async {
     try {
-      await _channel.invokeMethod<bool>(method);
+      return await _channel.invokeMethod<bool>(method);
     } on PlatformException {
       // Windows may decline a request under its keyboard/foreground policy.
     } on MissingPluginException {
       // Native integrations are absent in widget tests.
     }
+    return null;
   }
 
   @override
@@ -130,6 +171,7 @@ class WindowsTouchKeyboard with TextInputControl {
     _hideTimer?.cancel();
     _client = client;
     _attached = configuration.inputType != TextInputType.none;
+    _hadInputConnection = _hadInputConnection || _attached;
   }
 
   @override
@@ -150,12 +192,19 @@ class WindowsTouchKeyboard with TextInputControl {
     final generation = ++_generation;
     _hideTimer?.cancel();
     _showTimer?.cancel();
-    // Focus updates and route disposal are deferred. Never show for a client
-    // that was detached or unfocused while this request was pending.
-    _showTimer = Timer(const Duration(milliseconds: 60), () {
-      if (generation == _generation && _editing) {
-        unawaited(_invoke('showKeyboard'));
-      }
+    final touchTime = _touchTime;
+    if (touchTime == null ||
+        _clock.elapsed - touchTime > const Duration(seconds: 2)) {
+      return;
+    }
+    // Let Windows perform its normal automatic activation first. Only repair
+    // a missed touch request; mouse/hardware input never forces a keyboard.
+    _showTimer = Timer(const Duration(milliseconds: 600), () async {
+      if (generation != _generation || !_editing) return;
+      final visible = await _invoke('isKeyboardVisible');
+      if (generation != _generation || !_editing || visible != false) return;
+      final opened = await _invoke('showKeyboardIfHidden');
+      if (opened == true && !_editing) hide();
     });
   }
 
@@ -164,9 +213,14 @@ class WindowsTouchKeyboard with TextInputControl {
     final generation = ++_generation;
     _showTimer?.cancel();
     _hideTimer?.cancel();
-    // A field switch detaches then attaches; avoid closing between the two.
+    // Windows TextInput.hide is a no-op in this SDK. Keep explicit dismissal,
+    // but never hide between field switches or while the user is still editing.
+    if (!_hadInputConnection) return;
     _hideTimer = Timer(const Duration(milliseconds: 50), () {
-      if (generation == _generation) unawaited(_invoke('hideKeyboard'));
+      if (generation == _generation && !_editing) {
+        _hadInputConnection = false;
+        unawaited(_invoke('hideKeyboard'));
+      }
     });
   }
 
@@ -174,6 +228,7 @@ class WindowsTouchKeyboard with TextInputControl {
     ++_generation;
     _showTimer?.cancel();
     _hideTimer?.cancel();
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointer);
   }
 }
 

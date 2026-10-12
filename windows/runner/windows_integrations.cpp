@@ -43,8 +43,16 @@ WindowsIntegrations::WindowsIntegrations(flutter::BinaryMessenger* messenger,
   input_channel_ = std::make_unique<flutter::MethodChannel<Value>>(
       messenger, "pilipili/windows_input", &flutter::StandardMethodCodec::GetInstance());
   input_channel_->SetMethodCallHandler([this](const auto& call, auto result) {
-    if (call.method_name() == "showKeyboard" || call.method_name() == "hideKeyboard") {
-      result->Success(Value(Keyboard(call.method_name() == "showKeyboard")));
+    if (call.method_name() == "isKeyboardVisible") {
+      const auto visible = KeyboardVisible();
+      result->Success(visible ? Value(*visible) : Value());
+    } else if (call.method_name() == "showKeyboardIfHidden") {
+      // Recheck on the platform thread in case automatic activation finished
+      // while the Dart visibility response was in flight.
+      const auto visible = KeyboardVisible();
+      result->Success(Value(visible && !*visible && Keyboard(true)));
+    } else if (call.method_name() == "hideKeyboard") {
+      result->Success(Value(Keyboard(false)));
     } else {
       result->NotImplemented();
     }
@@ -82,6 +90,22 @@ WindowsIntegrations::~WindowsIntegrations() {
       controls_.IsEnabled(false);
       controls_.DisplayUpdater().ClearAll();
     } catch (const winrt::hresult_error&) {}
+  }
+}
+
+std::optional<bool> WindowsIntegrations::KeyboardVisible() {
+  if (GetAncestor(GetForegroundWindow(), GA_ROOT) != GetAncestor(parent_, GA_ROOT)) return std::nullopt;
+  try {
+    if (!framework_input_pane_) {
+      framework_input_pane_ = winrt::create_instance<IFrameworkInputPane>(
+          __uuidof(FrameworkInputPane));
+    }
+    RECT location{};
+    winrt::check_hresult(framework_input_pane_->Location(&location));
+    return !IsRectEmpty(&location);
+  } catch (const winrt::hresult_error&) {
+    // Unknown visibility must not trigger an unsolicited show request.
+    return std::nullopt;
   }
 }
 

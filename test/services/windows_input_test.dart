@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'dart:async';
+import 'dart:io';
 
 import 'package:Pilipili/services/windows_input.dart';
 import 'package:flutter/services.dart';
@@ -56,6 +58,27 @@ void main() {
     expect(resumed.first.type, KeyEventType.up);
     expect(resumed.first.logical, LogicalKeyboardKey.controlLeft.keyId);
     expect(resumed.last, same(hardware));
+    expect(repair.pending, isFalse);
+  });
+
+  test('clipboard injection accepts the final real Ctrl key-up', () {
+    final repair = WindowsPasteKeyNormalizer();
+    final ctrl = LogicalKeyboardKey.controlLeft.keyId;
+    final v = LogicalKeyboardKey.keyV.keyId;
+    final output = [
+      key(ctrl, .down),
+      key(ctrl, .up, synthesized: true),
+      key(v, .down),
+      key(v, .up),
+      key(ctrl, .down, synthesized: true),
+      key(ctrl, .up),
+    ].expand(repair.normalize).toList();
+    expect(output.map((event) => event.physical), [
+      0x700e0,
+      0x70019,
+      0x70019,
+      0x700e0,
+    ]);
     expect(repair.pending, isFalse);
   });
 
@@ -180,6 +203,8 @@ void main() {
       );
       await tester.tap(find.byType(TextField).first);
       await tester.pump();
+      expect(calls, isNot(contains('showKeyboard')));
+      await tester.pump(const Duration(milliseconds: 70));
       expect(calls, contains('showKeyboard'));
       expect(tester.testTextInput.hasAnyClients, isTrue);
       calls.clear();
@@ -194,9 +219,108 @@ void main() {
       calls.clear();
       first.requestFocus();
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 70));
       expect(calls, contains('showKeyboard'));
       TextInput.removeInputControl(observer);
       observer.dispose();
+    },
+  );
+
+  testWidgets('leaving the field cancels a pending keyboard show', (
+    tester,
+  ) async {
+    const channel = MethodChannel('pilipili/windows_input_exit_test');
+    final calls = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
+      call,
+    ) async {
+      calls.add(call.method);
+      return true;
+    });
+    final observer = WindowsTouchKeyboard(channel: channel);
+    final focus = FocusNode();
+    TextInput.addInputControl(observer);
+    addTearDown(() {
+      TextInput.removeInputControl(observer);
+      observer.dispose();
+      focus.dispose();
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      );
+    });
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: TextField(focusNode: focus)),
+      ),
+    );
+    await tester.tap(find.byType(TextField));
+    await tester.pump();
+    focus.unfocus();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(calls, isNot(contains('showKeyboard')));
+    expect(calls, contains('hideKeyboard'));
+  });
+
+  testWidgets(
+    'startup installs the repair after asynchronous keyboard initialization',
+    (tester) async {
+      if (!Platform.isWindows) return;
+      final dispatcher = PlatformDispatcher.instance;
+      final previous = dispatcher.onKeyData;
+      final ready = Completer<Map<String, int>>();
+      final messenger = tester.binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(
+        SystemChannels.keyboard,
+        (_) => ready.future,
+      );
+      dispatcher.onKeyData = null;
+      final initialized = WindowsInput.initialize();
+      await tester.pump();
+      dispatcher.onKeyData = tester.binding.keyEventManager.handleKeyData;
+      ready.complete({});
+      await tester.runAsync(() => initialized);
+      expect(dispatcher.onKeyData, isNotNull);
+      final received = <KeyEvent>[];
+      bool handler(KeyEvent event) {
+        received.add(event);
+        return false;
+      }
+
+      HardwareKeyboard.instance.addHandler(handler);
+      final ctrl = LogicalKeyboardKey.controlLeft.keyId;
+      final v = LogicalKeyboardKey.keyV.keyId;
+      for (final data in [
+        key(ctrl, .down),
+        key(ctrl, .up, synthesized: true),
+        key(v, .down),
+        key(v, .up),
+        key(ctrl, .down, synthesized: true),
+        key(ctrl, .up),
+      ]) {
+        dispatcher.onKeyData!(data);
+        if (!data.synthesized) {
+          await tester.binding.keyEventManager.handleRawKeyMessage({
+            'keymap': 'windows',
+            'type': data.type == .down ? 'keydown' : 'keyup',
+            'keyCode': data.logical == ctrl ? 0x11 : 0x56,
+            'scanCode': 0,
+            'characterCodePoint': 0,
+            'modifiers': 0x30,
+          });
+        }
+      }
+      expect(received.map((event) => event.physicalKey.usbHidUsage), [
+        0x700e0,
+        0x70019,
+        0x70019,
+        0x700e0,
+      ]);
+      HardwareKeyboard.instance.removeHandler(handler);
+      dispatcher.onKeyData = previous;
+      messenger.setMockMethodCallHandler(SystemChannels.keyboard, null);
+      await tester.pump(const Duration(seconds: 1));
     },
   );
 }

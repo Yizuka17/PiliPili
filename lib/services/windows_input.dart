@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 /// Repairs only the malformed key sequence emitted by Windows clipboard history.
 /// Normal keyboard events and the engine's zero-valued focus probes pass through.
@@ -84,7 +85,7 @@ class WindowsPasteKeyNormalizer {
         _step = 5;
         return [];
       }
-      if (_step == 5 && control && up && data.synthesized) {
+      if (_step == 5 && control && up) {
         _step = 0;
         _controlDown = false;
         return [_key(data, _controlPhysical, _controlLogical, .up)];
@@ -101,7 +102,16 @@ class WindowsTouchKeyboard with TextInputControl {
     : _channel = channel ?? const MethodChannel('pilipili/windows_input');
   final MethodChannel _channel;
   bool _attached = false;
+  TextInputClient? _client;
+  Timer? _showTimer;
   Timer? _hideTimer;
+  int _generation = 0;
+
+  bool get _editing {
+    if (!_attached) return false;
+    final client = _client;
+    return client is! EditableTextState || client.widget.focusNode.hasFocus;
+  }
 
   Future<void> _invoke(String method) async {
     try {
@@ -115,7 +125,10 @@ class WindowsTouchKeyboard with TextInputControl {
 
   @override
   void attach(TextInputClient client, TextInputConfiguration configuration) {
+    ++_generation;
+    _showTimer?.cancel();
     _hideTimer?.cancel();
+    _client = client;
     _attached = configuration.inputType != TextInputType.none;
   }
 
@@ -128,36 +141,55 @@ class WindowsTouchKeyboard with TextInputControl {
   @override
   void detach(TextInputClient client) {
     _attached = false;
+    _client = null;
     hide();
   }
 
   @override
   void show() {
+    final generation = ++_generation;
     _hideTimer?.cancel();
-    if (_attached) unawaited(_invoke('showKeyboard'));
+    _showTimer?.cancel();
+    // Focus updates and route disposal are deferred. Never show for a client
+    // that was detached or unfocused while this request was pending.
+    _showTimer = Timer(const Duration(milliseconds: 60), () {
+      if (generation == _generation && _editing) {
+        unawaited(_invoke('showKeyboard'));
+      }
+    });
   }
 
   @override
   void hide() {
+    final generation = ++_generation;
+    _showTimer?.cancel();
     _hideTimer?.cancel();
     // A field switch detaches then attaches; avoid closing between the two.
     _hideTimer = Timer(const Duration(milliseconds: 50), () {
-      if (!_attached) unawaited(_invoke('hideKeyboard'));
+      if (generation == _generation) unawaited(_invoke('hideKeyboard'));
     });
   }
 
-  void dispose() => _hideTimer?.cancel();
+  void dispose() {
+    ++_generation;
+    _showTimer?.cancel();
+    _hideTimer?.cancel();
+  }
 }
 
 abstract final class WindowsInput {
   static bool _initialized = false;
-  static void initialize() {
+  static Future<void> initialize() async {
     if (!Platform.isWindows || _initialized) return;
+    // ServicesBinding installs onKeyData after its initial native keyboard
+    // state sync. Await that initialization before wrapping the dispatcher.
+    await ServicesBinding.instance.keyboard.syncKeyboardState();
+    final dispatcher = PlatformDispatcher.instance;
+    final original =
+        dispatcher.onKeyData ??
+        ServicesBinding.instance.keyEventManager.handleKeyData;
     _initialized = true;
     TextInput.addInputControl(WindowsTouchKeyboard());
-    final dispatcher = PlatformDispatcher.instance;
-    final original = dispatcher.onKeyData;
-    if (original == null) return;
     final normalizer = WindowsPasteKeyNormalizer();
     Timer? timeout;
     dispatcher.onKeyData = (data) {

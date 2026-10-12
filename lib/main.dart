@@ -101,7 +101,7 @@ Future<void> _initAppPath() async {
 
 void main() async {
   ScaledWidgetsFlutterBinding.ensureInitialized();
-  WindowsInput.initialize();
+  await WindowsInput.initialize();
   await TouchDiagnostics.initialize();
   await TouchDiagnostics.initializeNative();
   MediaKit.ensureInitialized();

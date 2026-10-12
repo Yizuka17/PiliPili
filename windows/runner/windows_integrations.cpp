@@ -97,7 +97,6 @@ bool WindowsIntegrations::Keyboard(bool show) {
           winrt::put_abi(input_pane_)));
     }
     if (show) {
-      SetFocus(view_);
       return input_pane_.TryShow();
     }
     return input_pane_.TryHide();

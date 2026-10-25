@@ -80,8 +80,9 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
     var attempted = false;
     try {
       final fresh = await widget.read();
-      if (!mounted || !widget.visible || dismissed || !widget.canInteract())
+      if (!mounted || !widget.visible || dismissed || !widget.canInteract()) {
         return;
+      }
       setState(() => card = fresh);
       if (fresh.participation != 0) return;
       attempted = true;

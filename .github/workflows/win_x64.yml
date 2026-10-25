@@ -66,6 +66,18 @@ jobs:
       - name: Add runtime and package installer
         shell: pwsh
         run: |
+          cmake -S tool/tests -B .fvm/native-tests -G "Visual Studio 17 2022" -A x64
+          if ($LASTEXITCODE -ne 0) { throw 'Native test configuration failed' }
+          cmake --build .fvm/native-tests --config Release
+          if ($LASTEXITCODE -ne 0) { throw 'Native test compilation failed' }
+          & .fvm/native-tests/Release/windows_touch_input_test.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Windows touch regression failed' }
+          & .fvm/native-tests/Release/windows_integrations_test.exe
+          if ($LASTEXITCODE -ne 0) { throw 'Windows integration regression failed' }
+
+      - name: Add runtime and package installer
+        shell: pwsh
+        run: |
           $taskInstance = Get-Content build/windows/x64/CMakeCache.txt | Where-Object { $_.StartsWith('CMAKE_GENERATOR_INSTANCE:INTERNAL=') } | Select-Object -First 1
           $taskVisualStudio = ($taskInstance -split '=', 2)[1]
           tool/prepare_windows_runtime.ps1 -Bundle build/windows/x64/runner/Release -VisualStudioRoot $taskVisualStudio

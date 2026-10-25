@@ -10,18 +10,15 @@ import 'package:Pilipili/common/widgets/dialog/export_import.dart';
 import 'package:Pilipili/common/widgets/dialog/simple_dialog_option.dart';
 import 'package:Pilipili/common/widgets/flutter/list_tile.dart';
 import 'package:Pilipili/common/widgets/scaffold/simple_scaffold.dart';
-import 'package:Pilipili/pages/mine/controller.dart';
 import 'package:Pilipili/services/logger.dart';
 import 'package:Pilipili/services/error_log_storage.dart';
 import 'package:Pilipili/utils/accounts.dart';
-import 'package:Pilipili/utils/accounts/account.dart';
 import 'package:Pilipili/utils/android/bindings.g.dart';
 import 'package:Pilipili/utils/app_scheme.dart';
 import 'package:Pilipili/utils/cache_manager.dart';
 import 'package:Pilipili/utils/date_utils.dart';
 import 'package:Pilipili/utils/device_utils.dart';
 import 'package:Pilipili/utils/extension/num_ext.dart';
-import 'package:Pilipili/utils/login_utils.dart';
 import 'package:Pilipili/utils/page_utils.dart';
 import 'package:Pilipili/utils/platform_utils.dart';
 import 'package:Pilipili/utils/storage.dart';
@@ -311,23 +308,13 @@ Commit Hash: ${BuildConfig.commitHash}''',
           ListTile(
             title: const Text('导入/导出登录信息'),
             leading: const Icon(Icons.import_export_outlined),
-            onTap: () => showImportExportDialog<Map>(
+            onTap: () => showImportExportDialog<Map<String, dynamic>>(
               context,
               title: '登录信息',
               localFileName: () => 'account',
               onExport: () =>
                   Utils.jsonEncoder.convert(Accounts.account.toMap()),
-              onImport: (json) async {
-                final res = json.map(
-                  (key, value) => MapEntry(key, LoginAccount.fromJson(value)),
-                );
-                await Accounts.account.putAll(res);
-                await Accounts.refresh();
-                MineController.anonymity.value = !Accounts.heartbeat.isLogin;
-                if (Accounts.main.isLogin) {
-                  await LoginUtils.onLoginMain();
-                }
-              },
+              onImport: Accounts.importJsonAccount,
             ),
           ),
           ListTile(
@@ -341,6 +328,12 @@ Commit Hash: ${BuildConfig.commitHash}''',
               onExport: GStorage.exportAllSettings,
               onImport: GStorage.importAllJsonSettings,
             ),
+          ),
+          ListTile(
+            title: const Text('导入/导出所有数据'),
+            dense: false,
+            leading: const Icon(Icons.archive_outlined),
+            onTap: () => showDataImportExportDialog(context),
           ),
           ListTile(
             title: const Text('重置所有设置'),

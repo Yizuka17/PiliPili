@@ -25,7 +25,7 @@ import 'package:Pilipili/models/common/sponsor_block/action_type.dart';
 import 'package:Pilipili/models/common/sponsor_block/post_segment_model.dart';
 import 'package:Pilipili/models/common/sponsor_block/segment_type.dart';
 import 'package:Pilipili/models/common/super_resolution_type.dart';
-import 'package:Pilipili/models/common/video/video_quality.dart';
+import 'package:Pilipili/models/common/video/base_quality.dart';
 import 'package:Pilipili/models/video/play/url.dart';
 import 'package:Pilipili/models_new/video/video_detail/episode.dart' as ugc;
 import 'package:Pilipili/models_new/video/video_detail/ugc_season.dart';
@@ -56,6 +56,7 @@ import 'package:Pilipili/plugin/pl_player/widgets/play_pause_btn.dart';
 import 'package:Pilipili/utils/android/bindings.g.dart';
 import 'package:Pilipili/utils/cache_manager.dart';
 import 'package:Pilipili/utils/connectivity_utils.dart';
+import 'package:Pilipili/utils/desktop/window_controller.dart';
 import 'package:Pilipili/utils/duration_utils.dart';
 import 'package:Pilipili/utils/extension/num_ext.dart';
 import 'package:Pilipili/utils/extension/theme_ext.dart';
@@ -86,7 +87,6 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:material_ui/material_ui.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:screen_brightness_platform_interface/screen_brightness_platform_interface.dart';
-import 'package:window_manager/window_manager.dart';
 
 part 'widgets.dart';
 
@@ -203,19 +203,15 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         plPlayerController
           ..volumeIndicator.value = true
           ..volumeTimer?.cancel()
-          ..volumeTimer = Timer(
-            const Duration(milliseconds: 800),
-            () {
-              if (mounted) {
-                plPlayerController.volumeIndicator.value = false;
-              }
-            },
-          );
+          ..volumeTimer = Timer(const Duration(milliseconds: 800), () {
+            if (mounted) {
+              plPlayerController.volumeIndicator.value = false;
+            }
+          });
       }
     }
   }
 
-  int? tmpSubtitlePaddingB;
   StreamSubscription? _controlsListener;
   void _onControlChanged(bool val) {
     final visible = val && !plPlayerController.controlsLock.value;
@@ -244,22 +240,30 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     if (widget.videoDetailController case final controller?) {
       if (controller.vttSubtitlesIndex.value != 0) {
         if (visible) {
-          const int minPadding = 70;
-          if (plPlayerController.subtitlePaddingB < minPadding) {
-            tmpSubtitlePaddingB = plPlayerController.subtitlePaddingB;
-            plPlayerController
-              ..subtitlePaddingB = minPadding
-              ..subtitleConfig.value = plPlayerController.getSubConfig;
-          }
+          _adjustSubPaddingIfNeeded();
         } else {
-          if (tmpSubtitlePaddingB != null) {
-            plPlayerController
-              ..subtitlePaddingB = tmpSubtitlePaddingB!
-              ..subtitleConfig.value = plPlayerController.getSubConfig;
-            tmpSubtitlePaddingB = null;
-          }
+          _resetSubPaddingIfNeeded();
         }
       }
+    }
+  }
+
+  void _adjustSubPaddingIfNeeded() {
+    const int minPadding = 70;
+    if (plPlayerController.subtitlePaddingB < minPadding) {
+      plPlayerController
+        ..tmpSubtitlePaddingB = plPlayerController.subtitlePaddingB
+        ..subtitlePaddingB = minPadding
+        ..updateSubtitleStyle();
+    }
+  }
+
+  void _resetSubPaddingIfNeeded() {
+    if (plPlayerController.tmpSubtitlePaddingB != null) {
+      plPlayerController
+        ..subtitlePaddingB = plPlayerController.tmpSubtitlePaddingB!
+        ..updateSubtitleStyle()
+        ..tmpSubtitlePaddingB = null;
     }
   }
 
@@ -384,6 +388,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     _scaleGestureRecognizer.dispose();
     _brightnessListener?.cancel();
     _volumeListener?.cancel();
+    _resetSubPaddingIfNeeded();
     _controlsListener?.cancel();
     _animationController.dispose();
     _transformationController.dispose();
@@ -418,11 +423,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         width: widgetWidth,
         height: 30,
         tooltip: '上一集',
-        icon: const Icon(
-          Icons.skip_previous,
-          size: 22,
-          color: Colors.white,
-        ),
+        icon: const Icon(Icons.skip_previous, size: 22, color: Colors.white),
         onTap: () {
           if (!introController.prevPlay()) {
             SmartDialog.showToast('已经是第一集了');
@@ -435,11 +436,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         width: widgetWidth,
         height: 30,
         tooltip: '下一集',
-        icon: const Icon(
-          Icons.skip_next,
-          size: 22,
-          color: Colors.white,
-        ),
+        icon: const Icon(Icons.skip_next, size: 22, color: Colors.white),
         onTap: () {
           if (!introController.nextPlay()) {
             SmartDialog.showToast('已经是最后一集了');
@@ -460,109 +457,96 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       ),
 
       /// 高能进度条
-      BottomControlType.dmChart => Obx(
-        () {
-          final list = videoDetailController.dmTrend.value?.dataOrNull;
-          if (list != null && list.isNotEmpty) {
-            final show = videoDetailController.showDmTrendChart.value;
-            return ComBtn(
-              width: widgetWidth,
-              height: 30,
-              tooltip: '高能进度条',
-              icon: DisabledIcon(
-                disable: !show,
-                child: const Icon(
-                  Icons.show_chart,
-                  size: 22,
-                  color: Colors.white,
-                ),
-              ),
-              onTap: () => videoDetailController.showDmTrendChart.value = !show,
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
-
-      /// 超分辨率
-      BottomControlType.superResolution => Obx(
-        () {
-          final type = plPlayerController.superResolutionType.value;
-          return PopupMenuButton<SuperResolutionType>(
-            tooltip: '超分辨率',
-            requestFocus: false,
-            initialValue: type,
-            color: Colors.black.withValues(alpha: 0.8),
-            itemBuilder: (context) {
-              return SuperResolutionType.values
-                  .map(
-                    (type) => PopupMenuItem<SuperResolutionType>(
-                      height: 35,
-                      padding: const EdgeInsets.only(left: 30),
-                      value: type,
-                      onTap: () => plPlayerController.setShader(type),
-                      child: Text(
-                        type.label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                type.label,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
+      BottomControlType.dmChart => Obx(() {
+        final list = videoDetailController.dmTrend.value?.dataOrNull;
+        if (list != null && list.isNotEmpty) {
+          final show = videoDetailController.showDmTrendChart.value;
+          return ComBtn(
+            width: widgetWidth,
+            height: 30,
+            tooltip: '高能进度条',
+            icon: DisabledIcon(
+              disable: !show,
+              child: const Icon(
+                Icons.show_chart,
+                size: 22,
+                color: Colors.white,
               ),
             ),
+            onTap: () => videoDetailController.showDmTrendChart.value = !show,
           );
-        },
-      ),
+        }
+        return const SizedBox.shrink();
+      }),
+
+      /// 超分辨率
+      BottomControlType.superResolution => Obx(() {
+        final type = plPlayerController.superResolutionType.value;
+        return PopupMenuButton<SuperResolutionType>(
+          tooltip: '超分辨率',
+          requestFocus: false,
+          initialValue: type,
+          color: Colors.black.withValues(alpha: 0.8),
+          itemBuilder: (context) {
+            return SuperResolutionType.values
+                .map(
+                  (type) => PopupMenuItem<SuperResolutionType>(
+                    height: 35,
+                    padding: const EdgeInsets.only(left: 30),
+                    value: type,
+                    onTap: () => plPlayerController.setShader(type),
+                    child: Text(
+                      type.label,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
+                  ),
+                )
+                .toList();
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              type.label,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+            ),
+          ),
+        );
+      }),
 
       /// 分段信息
-      BottomControlType.viewPoints => Obx(
-        () {
-          if (videoDetailController.viewPointList.isNotEmpty) {
-            return ComBtn(
-              width: widgetWidth,
-              height: 30,
-              tooltip: '分段信息',
-              icon: DisabledIcon(
-                disable: !videoDetailController.showVP.value,
-                child: const Icon(
-                  CustomIcons.view_headline_rotate_90,
-                  size: 22,
-                  color: Colors.white,
-                ),
+      BottomControlType.viewPoints => Obx(() {
+        if (videoDetailController.viewPointList.isNotEmpty) {
+          return ComBtn(
+            width: widgetWidth,
+            height: 30,
+            tooltip: '分段信息',
+            icon: DisabledIcon(
+              disable: !videoDetailController.showVP.value,
+              child: const Icon(
+                CustomIcons.view_headline_rotate_90,
+                size: 22,
+                color: Colors.white,
               ),
-              onTap: widget.showViewPoints,
-              onLongPress: () {
-                Feedback.forLongPress(context);
-                videoDetailController.showVP.toggle();
-              },
-              onSecondaryTap: PlatformUtils.isMobile
-                  ? null
-                  : () => videoDetailController.showVP.toggle(),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+            ),
+            onTap: widget.showViewPoints,
+            onLongPress: () {
+              Feedback.forLongPress(context);
+              videoDetailController.showVP.toggle();
+            },
+            onSecondaryTap: PlatformUtils.isMobile
+                ? null
+                : () => videoDetailController.showVP.toggle(),
+          );
+        }
+        return const SizedBox.shrink();
+      }),
 
       /// 选集
       BottomControlType.episode => ComBtn(
         width: widgetWidth,
         height: 30,
         tooltip: '选集',
-        icon: const Icon(
-          Icons.list,
-          size: 22,
-          color: Colors.white,
-        ),
+        icon: const Icon(Icons.list, size: 22, color: Colors.white),
         onTap: () {
           if (videoDetailController.isFileSource) {
             // TODO
@@ -573,184 +557,154 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
             widget.showEpisodes?.call();
             return;
           }
-          int? index;
-          int currentCid = plPlayerController.cid!;
-          String bvid = plPlayerController.bvid;
-          List<ugc.BaseEpisodeItem> episodes = [];
-          if (isSeason) {
-            final sections = videoDetail.ugcSeason!.sections!;
-            for (int i = 0; i < sections.length; i++) {
-              final episodesList = sections[i].episodes!;
-              for (final item in episodesList) {
-                if (item.cid == currentCid) {
-                  index = i;
-                  episodes = episodesList;
-                  break;
-                }
-              }
-            }
-          } else if (isPart) {
+          final bvid = plPlayerController.bvid;
+          List<ugc.BaseEpisodeItem>? episodes;
+          if (isPart) {
             episodes = videoDetail.pages!;
           } else if (isPgc) {
             episodes =
                 (introController as PgcIntroController).pgcItem.episodes!;
           }
           widget.showEpisodes?.call(
-            index,
+            isSeason ? videoDetailController.seasonIndex.value : null,
             isSeason ? videoDetail.ugcSeason! : null,
             isSeason ? null : episodes,
             bvid,
             IdUtils.bv2av(bvid),
-            isSeason && isPart
-                ? videoDetailController.seasonCid ?? currentCid
-                : currentCid,
+            isSeason
+                ? videoDetailController.seasonCid
+                : plPlayerController.cid!,
           );
         },
       ),
 
       /// 画面比例
-      BottomControlType.fit => Obx(
-        () {
-          final fit = plPlayerController.videoFit.value;
-          return PopupMenuButton<VideoFitType>(
-            tooltip: '画面比例',
-            requestFocus: false,
-            initialValue: fit,
-            color: Colors.black.withValues(alpha: 0.8),
-            itemBuilder: (context) {
-              return VideoFitType.values
-                  .map(
-                    (boxFit) => PopupMenuItem<VideoFitType>(
-                      height: 35,
-                      padding: const EdgeInsets.only(left: 30),
-                      value: boxFit,
-                      onTap: () => plPlayerController.toggleVideoFit(boxFit),
-                      child: Text(
-                        boxFit.desc,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                fit.desc,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-              ),
-            ),
-          );
-        },
-      ),
-
-      BottomControlType.aiTranslate => Obx(
-        () {
-          final list = videoDetailController.languages.value;
-          if (list != null && list.isNotEmpty) {
-            return PopupMenuButton<String>(
-              tooltip: '翻译',
-              requestFocus: false,
-              initialValue: videoDetailController.currLang.value,
-              onSelected: videoDetailController.setLanguage,
-              color: Colors.black.withValues(alpha: 0.8),
-              itemBuilder: (context) => [
-                const PopupMenuItem<String>(
-                  height: 35,
-                  value: '',
-                  child: Text(
-                    "关闭翻译",
-                    style: TextStyle(color: Colors.white, fontSize: 13),
-                  ),
-                ),
-                ...list.map(
-                  (e) => PopupMenuItem<String>(
+      BottomControlType.fit => Obx(() {
+        final fit = plPlayerController.videoFit.value;
+        return PopupMenuButton<VideoFitType>(
+          tooltip: '画面比例',
+          requestFocus: false,
+          initialValue: fit,
+          color: Colors.black.withValues(alpha: 0.8),
+          itemBuilder: (context) {
+            return VideoFitType.values
+                .map(
+                  (boxFit) => PopupMenuItem<VideoFitType>(
                     height: 35,
-                    value: e.lang,
+                    padding: const EdgeInsets.only(left: 30),
+                    value: boxFit,
+                    onTap: () => plPlayerController.toggleVideoFit(boxFit),
                     child: Text(
-                      e.title!,
+                      boxFit.desc,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                     ),
                   ),
-                ),
-              ],
-              child: SizedBox(
-                width: widgetWidth,
-                height: 30,
-                child: const Icon(
-                  Icons.translate,
-                  size: 18,
-                  color: Colors.white,
+                )
+                .toList();
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              fit.desc,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+            ),
+          ),
+        );
+      }),
+
+      BottomControlType.aiTranslate => Obx(() {
+        final list = videoDetailController.languages.value;
+        if (list != null && list.isNotEmpty) {
+          return PopupMenuButton<String>(
+            tooltip: '翻译',
+            requestFocus: false,
+            initialValue: videoDetailController.currLang.value,
+            onSelected: videoDetailController.setLanguage,
+            color: Colors.black.withValues(alpha: 0.8),
+            itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                height: 35,
+                value: '',
+                child: Text(
+                  "关闭翻译",
+                  style: TextStyle(color: Colors.white, fontSize: 13),
                 ),
               ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+              ...list.map(
+                (e) => PopupMenuItem<String>(
+                  height: 35,
+                  value: e.lang,
+                  child: Text(
+                    e.title!,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+              ),
+            ],
+            child: SizedBox(
+              width: widgetWidth,
+              height: 30,
+              child: const Icon(Icons.translate, size: 18, color: Colors.white),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      }),
 
       /// 字幕
-      BottomControlType.subtitle => Obx(
-        () {
-          if (videoDetailController.subtitles.isNotEmpty) {
-            final val = videoDetailController.vttSubtitlesIndex.value;
-            return PopupMenuButton<int>(
-              tooltip: '字幕',
-              requestFocus: false,
-              initialValue: val,
-              color: Colors.black.withValues(alpha: 0.8),
-              itemBuilder: (context) {
-                return [
-                  PopupMenuItem<int>(
-                    value: 0,
-                    height: 35,
-                    onTap: () => videoDetailController.setSubtitle(0),
-                    child: const Text(
-                      "关闭字幕",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
-                    ),
+      BottomControlType.subtitle => Obx(() {
+        if (videoDetailController.subtitles.isNotEmpty) {
+          final val = videoDetailController.vttSubtitlesIndex.value;
+          return PopupMenuButton<int>(
+            tooltip: '字幕',
+            requestFocus: false,
+            initialValue: val,
+            color: Colors.black.withValues(alpha: 0.8),
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem<int>(
+                  value: 0,
+                  height: 35,
+                  onTap: () => videoDetailController.setSubtitle(0),
+                  child: const Text(
+                    "关闭字幕",
+                    style: TextStyle(color: Colors.white, fontSize: 13),
                   ),
-                  ...videoDetailController.subtitles.mapIndexed((i, e) {
-                    return PopupMenuItem<int>(
-                      value: i + 1,
-                      height: 35,
-                      onTap: () => videoDetailController.setSubtitle(i + 1),
-                      child: Text(
-                        e.lanDoc ?? e.lan,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const .new(color: Colors.white, fontSize: 13),
-                      ),
-                    );
-                  }),
-                ];
-              },
-              child: SizedBox(
-                width: widgetWidth,
-                height: 30,
-                child: val == 0
-                    ? const Icon(
-                        Icons.closed_caption_off_outlined,
-                        size: 22,
-                        color: Colors.white,
-                      )
-                    : const Icon(
-                        Icons.closed_caption_off_rounded,
-                        size: 22,
-                        color: Colors.white,
-                      ),
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+                ),
+                ...videoDetailController.subtitles.mapIndexed((i, e) {
+                  return PopupMenuItem<int>(
+                    value: i + 1,
+                    height: 35,
+                    onTap: () => videoDetailController.setSubtitle(i + 1),
+                    child: Text(
+                      e.lanDoc ?? e.lan,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const .new(color: Colors.white, fontSize: 13),
+                    ),
+                  );
+                }),
+              ];
+            },
+            child: SizedBox(
+              width: widgetWidth,
+              height: 30,
+              child: val == 0
+                  ? const Icon(
+                      Icons.closed_caption_off_outlined,
+                      size: 22,
+                      color: Colors.white,
+                    )
+                  : const Icon(
+                      Icons.closed_caption_off_rounded,
+                      size: 22,
+                      color: Colors.white,
+                    ),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      }),
 
       /// 播放速度
       BottomControlType.speed => Obx(
@@ -787,81 +741,73 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         ),
       ),
 
-      BottomControlType.qa => Obx(
-        () {
-          final VideoQuality? currentVideoQa =
-              videoDetailController.currentVideoQa.value;
-          if (currentVideoQa == null) {
-            return const SizedBox.shrink();
-          }
-          final PlayUrlModel videoInfo = videoDetailController.data;
-          if (videoInfo.dash == null) {
-            return const SizedBox.shrink();
-          }
-          final videoFormat = videoInfo.supportFormats!;
-          final availableQa = videoInfo.dash!.video!.availableVideoQualities;
-          return PopupMenuButton<int>(
-            tooltip: '画质',
-            requestFocus: false,
-            initialValue: currentVideoQa.code,
-            color: Colors.black.withValues(alpha: 0.8),
-            itemBuilder: (context) {
-              return List.generate(
-                videoFormat.length,
-                (index) {
-                  final item = videoFormat[index];
-                  final enabled = availableQa.contains(item.quality);
-                  return PopupMenuItem<int>(
-                    enabled: enabled,
-                    height: 35,
-                    padding: const EdgeInsets.only(left: 15, right: 10),
-                    value: item.quality,
-                    onTap: () async {
-                      if (currentVideoQa.code == item.quality) {
-                        return;
-                      }
-                      final int quality = item.quality!;
-                      final newQa = VideoQuality.fromCode(quality);
-                      videoDetailController
-                        ..plPlayerController.cacheVideoQa = newQa.code
-                        ..currentVideoQa.value = newQa
-                        ..updatePlayer();
+      BottomControlType.qa => Obx(() {
+        final VideoQuality? currentVideoQa =
+            videoDetailController.currentVideoQa.value;
+        if (currentVideoQa == null) {
+          return const SizedBox.shrink();
+        }
+        final PlayUrlModel videoInfo = videoDetailController.data;
+        if (videoInfo.dash == null) {
+          return const SizedBox.shrink();
+        }
+        final videoFormat = videoInfo.supportFormats!;
+        final availableQa = videoInfo.dash!.video!.availableVideoQualities;
+        return PopupMenuButton<int>(
+          tooltip: '画质',
+          requestFocus: false,
+          initialValue: currentVideoQa.code,
+          color: Colors.black.withValues(alpha: 0.8),
+          itemBuilder: (context) {
+            return List.generate(videoFormat.length, (index) {
+              final item = videoFormat[index];
+              final enabled = availableQa.contains(item.quality);
+              return PopupMenuItem<int>(
+                enabled: enabled,
+                height: 35,
+                padding: const EdgeInsets.only(left: 15, right: 10),
+                value: item.quality,
+                onTap: () async {
+                  if (currentVideoQa.code == item.quality) {
+                    return;
+                  }
+                  final int quality = item.quality!;
+                  final newQa = VideoQuality.fromCode(quality);
+                  videoDetailController
+                    ..plPlayerController.cacheVideoQa = newQa.code
+                    ..currentVideoQa.value = newQa
+                    ..updatePlayer();
 
-                      SmartDialog.showToast("画质已变为：${newQa.desc}");
+                  SmartDialog.showToast("画质已变为：${newQa.desc}");
 
-                      // update
-                      if (!plPlayerController.tempPlayerConf) {
-                        GStorage.setting.put(
-                          await ConnectivityUtils.isWiFi
-                              ? SettingBoxKey.defaultVideoQa
-                              : SettingBoxKey.defaultVideoQaCellular,
-                          quality,
-                        );
-                      }
-                    },
-                    child: Text(
-                      item.newDesc ?? '',
-                      style: enabled
-                          ? const TextStyle(color: Colors.white, fontSize: 13)
-                          : const TextStyle(
-                              color: Color(0x62FFFFFF),
-                              fontSize: 13,
-                            ),
-                    ),
-                  );
+                  // update
+                  if (!plPlayerController.tempPlayerConf) {
+                    GStorage.setting.put(
+                      await ConnectivityUtils.isWiFi
+                          ? SettingBoxKey.defaultVideoQa
+                          : SettingBoxKey.defaultVideoQaCellular,
+                      quality,
+                    );
+                  }
                 },
+                child: Text(
+                  item.newDesc ?? item.quality.toString(),
+                  style: enabled
+                      ? const TextStyle(color: Colors.white, fontSize: 13)
+                      : const TextStyle(color: Color(0x62FFFFFF), fontSize: 13),
+                ),
               );
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                currentVideoQa.shortDesc,
-                style: const TextStyle(color: Colors.white, fontSize: 13),
-              ),
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Text(
+              currentVideoQa.shortDesc,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      }),
 
       /// 全屏
       BottomControlType.fullscreen => ComBtn(
@@ -1087,32 +1033,26 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       if (cumulativeDy > threshold) {
         _gestureType = .center_down;
         if (isFullScreen ^ plPlayerController.fullScreenGestureReverse) {
-          fullScreenTrigger(
-            plPlayerController.fullScreenGestureReverse,
-          );
+          fullScreenTrigger(plPlayerController.fullScreenGestureReverse);
         }
       } else if (cumulativeDy < -threshold) {
         _gestureType = .center_up;
         if (!isFullScreen ^ plPlayerController.fullScreenGestureReverse) {
-          fullScreenTrigger(
-            !plPlayerController.fullScreenGestureReverse,
-          );
+          fullScreenTrigger(!plPlayerController.fullScreenGestureReverse);
         }
       }
     } else if (_gestureType == .right) {
       // 右边区域
-      final double level = maxHeight * 0.5;
       EasyThrottle.throttle(
         'setVolume',
         const Duration(milliseconds: 20),
-        () {
-          final double volume = clampDouble(
-            plPlayerController.volume.value - delta.dy / level,
+        () => plPlayerController.setVolume(
+          clampDouble(
+            plPlayerController.volume.value - delta.dy / (maxHeight * 0.5),
             0.0,
             plPlayerController.maxVolume,
-          );
-          plPlayerController.setVolume(volume);
-        },
+          ),
+        ),
       );
     }
   }
@@ -1337,18 +1277,17 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         return;
       }
 
-      final double level = maxHeight * 0.5;
       EasyThrottle.throttle(
         'setVolume',
         const Duration(milliseconds: 20),
-        () {
-          final double volume = clampDouble(
-            plPlayerController.volume.value - event.localPanDelta.dy / level,
+        () => plPlayerController.setVolume(
+          clampDouble(
+            plPlayerController.volume.value -
+                event.localPanDelta.dy / (maxHeight * 0.5),
             0.0,
             plPlayerController.maxVolume,
-          );
-          plPlayerController.setVolume(volume);
-        },
+          ),
+        ),
       );
     }
   }
@@ -1382,10 +1321,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
         : colorScheme.primary;
     late final thumbGlowColor = primary.withAlpha(80);
     late final bufferedBarColor = primary.withValues(alpha: 0.4);
-    const TextStyle textStyle = TextStyle(
-      color: Colors.white,
-      fontSize: 12,
-    );
+    const TextStyle textStyle = TextStyle(color: Colors.white, fontSize: 12);
     final isLive = plPlayerController.isLive;
 
     final child = Stack(
@@ -1413,18 +1349,16 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           ),
 
         if (plPlayerController.enableTapDm)
-          Obx(
-            () {
-              if (!plPlayerController.enableShowDanmaku.value) {
-                return const SizedBox.shrink();
-              }
-              final dmOffset = _dmOffset.value;
-              if (dmOffset != null && _suspendedDm != null) {
-                return _buildDmAction(_suspendedDm!, dmOffset);
-              }
+          Obx(() {
+            if (!plPlayerController.enableShowDanmaku.value) {
               return const SizedBox.shrink();
-            },
-          ),
+            }
+            final dmOffset = _dmOffset.value;
+            if (dmOffset != null && _suspendedDm != null) {
+              return _buildDmAction(_suspendedDm!, dmOffset);
+            }
+            return const SizedBox.shrink();
+          }),
 
         /// 长按倍速 toast
         if (!isLive)
@@ -1525,49 +1459,47 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           ignoring: true,
           child: Align(
             alignment: Alignment.center,
-            child: Obx(
-              () {
-                final volume = plPlayerController.volume.value;
-                return AnimatedOpacity(
-                  curve: Curves.easeInOut,
-                  opacity: plPlayerController.volumeIndicator.value ? 1.0 : 0.0,
-                  duration: const Duration(milliseconds: 150),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 5,
-                    ),
-                    decoration: const BoxDecoration(
-                      color: Color(0x88000000),
-                      borderRadius: BorderRadius.all(Radius.circular(64)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          volume == 0.0
-                              ? Icons.volume_off
-                              : volume < 0.5
-                              ? Icons.volume_down
-                              : Icons.volume_up,
-                          color: Colors.white,
-                          size: 20.0,
-                        ),
-                        const SizedBox(width: 2.0),
-                        Text(
-                          '${(volume * 100.0).round()}%',
-                          style: const TextStyle(
-                            fontSize: 13.0,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
+            child: Obx(() {
+              final volume = plPlayerController.volume.value;
+              return AnimatedOpacity(
+                curve: Curves.easeInOut,
+                opacity: plPlayerController.volumeIndicator.value ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 150),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
                   ),
-                );
-              },
-            ),
+                  decoration: const BoxDecoration(
+                    color: Color(0x88000000),
+                    borderRadius: BorderRadius.all(Radius.circular(64)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        volume == 0.0
+                            ? Icons.volume_off
+                            : volume < 0.5
+                            ? Icons.volume_down
+                            : Icons.volume_up,
+                        color: Colors.white,
+                        size: 20.0,
+                      ),
+                      const SizedBox(width: 2.0),
+                      Text(
+                        '${(volume * 100.0).round()}%',
+                        style: const TextStyle(
+                          fontSize: 13.0,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
           ),
         ),
 
@@ -1636,7 +1568,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                     child: plPlayerController.isDesktopPip
                         ? GestureDetector(
                             behavior: HitTestBehavior.translucent,
-                            onPanStart: (_) => windowManager.startDragging(),
+                            onPanStart: (_) => WindowController.instance.window
+                                ?.startDragging(),
                             child: widget.headerControl,
                           )
                         : widget.headerControl,
@@ -1695,9 +1628,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                         visualDensity: VisualDensity.compact,
                         padding: const EdgeInsets.all(15),
                         shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(6),
-                          ),
+                          borderRadius: BorderRadius.all(Radius.circular(6)),
                         ),
                       ),
                       onPressed: () async {
@@ -1735,88 +1666,84 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
             bottom: -2.2,
             left: 0,
             right: 0,
-            child: Obx(
-              () {
-                final showControls = plPlayerController.showControls.value;
-                final bool offstage;
-                switch (plPlayerController.progressType) {
-                  case .alwaysShow:
-                    offstage = showControls;
-                  case .alwaysHide:
-                    if (!plPlayerController.isSeeking.value) {
-                      return const SizedBox.shrink();
-                    }
-                    offstage = showControls;
-                  case .onlyShowFullScreen:
-                    offstage =
-                        showControls ||
-                        (!isFullScreen && !plPlayerController.isSeeking.value);
-                  case .onlyHideFullScreen:
-                    offstage =
-                        showControls ||
-                        (isFullScreen && !plPlayerController.isSeeking.value);
-                }
-                return Offstage(
-                  offstage: offstage,
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      Obx(
-                        () => ProgressBar(
-                          progress: plPlayerController.progress,
-                          buffered: plPlayerController.buffered.value,
-                          total: plPlayerController.duration.value,
-                          progressBarColor: primary,
-                          baseBarColor: const Color(0x33FFFFFF),
-                          bufferedBarColor: bufferedBarColor,
-                          thumbColor: primary,
-                          thumbGlowColor: thumbGlowColor,
-                          barHeight: 3.5,
-                          thumbRadius: 2.5,
+            child: Obx(() {
+              final showControls = plPlayerController.showControls.value;
+              final bool offstage;
+              switch (plPlayerController.progressType) {
+                case .alwaysShow:
+                  offstage = showControls;
+                case .alwaysHide:
+                  if (!plPlayerController.isSeeking.value) {
+                    return const SizedBox.shrink();
+                  }
+                  offstage = showControls;
+                case .onlyShowFullScreen:
+                  offstage =
+                      showControls ||
+                      (!isFullScreen && !plPlayerController.isSeeking.value);
+                case .onlyHideFullScreen:
+                  offstage =
+                      showControls ||
+                      (isFullScreen && !plPlayerController.isSeeking.value);
+              }
+              return Offstage(
+                offstage: offstage,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    Obx(
+                      () => ProgressBar(
+                        progress: plPlayerController.progress,
+                        buffered: plPlayerController.buffered.value,
+                        total: plPlayerController.duration.value,
+                        progressBarColor: primary,
+                        baseBarColor: const Color(0x33FFFFFF),
+                        bufferedBarColor: bufferedBarColor,
+                        thumbColor: primary,
+                        thumbGlowColor: thumbGlowColor,
+                        barHeight: 3.5,
+                        thumbRadius: 2.5,
+                      ),
+                    ),
+                    if (plPlayerController.enableBlock &&
+                        videoDetailController.segmentProgressList.isNotEmpty)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0.75,
+                        child: SegmentProgressBar(
+                          segments: videoDetailController.segmentProgressList,
                         ),
                       ),
-                      if (plPlayerController.enableBlock &&
-                          videoDetailController.segmentProgressList.isNotEmpty)
-                        Positioned(
-                          left: 0,
-                          right: 0,
-                          bottom: 0.75,
-                          child: SegmentProgressBar(
-                            segments: videoDetailController.segmentProgressList,
-                          ),
-                        ),
-                      if (plPlayerController.showViewPoints &&
-                          videoDetailController.viewPointList.isNotEmpty &&
-                          videoDetailController.showVP.value)
-                        Padding(
-                          padding: const .only(bottom: 4.25),
-                          child: ViewPointSegmentProgressBar(
-                            segments: videoDetailController.viewPointList,
-                            onSeek: PlatformUtils.isMobile
-                                ? (position) {
-                                    if (!plPlayerController
-                                        .controlsLock
-                                        .value) {
-                                      plPlayerController.seekTo(
-                                        position,
-                                        isSeek: false,
-                                      );
-                                    }
+                    if (plPlayerController.showViewPoints &&
+                        videoDetailController.viewPointList.isNotEmpty &&
+                        videoDetailController.showVP.value)
+                      Padding(
+                        padding: const .only(bottom: 4.25),
+                        child: ViewPointSegmentProgressBar(
+                          segments: videoDetailController.viewPointList,
+                          onSeek: PlatformUtils.isMobile
+                              ? (position) {
+                                  if (!plPlayerController.controlsLock.value) {
+                                    plPlayerController.seekTo(
+                                      position,
+                                      isSeek: false,
+                                    );
                                   }
-                                : null,
-                          ),
+                                }
+                              : null,
                         ),
-                      if (plPlayerController.showDmChart &&
-                          videoDetailController.showDmTrendChart.value)
-                        if (videoDetailController.dmTrend.value?.dataOrNull
-                            case final list?)
-                          buildDmChart(primary, list, videoDetailController),
-                    ],
-                  ),
-                );
-              },
-            ),
+                      ),
+                    if (plPlayerController.showDmChart &&
+                        videoDetailController.showDmTrendChart.value)
+                      if (videoDetailController.dmTrend.value?.dataOrNull
+                          case final list?)
+                        buildDmChart(primary, list, videoDetailController),
+                  ],
+                ),
+              );
+            }),
           ),
 
         if (!isLive && plPlayerController.showSeekPreview)
@@ -1981,10 +1908,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                             child: TweenAnimationBuilder<double>(
                               tween: Tween<double>(begin: 0.0, end: 1.0),
                               duration: const Duration(milliseconds: 500),
-                              builder: (context, value, child) => Opacity(
-                                opacity: value,
-                                child: child,
-                              ),
+                              builder: (context, value, child) =>
+                                  Opacity(opacity: value, child: child),
                               child: BackwardSeekIndicator(
                                 duration:
                                     plPlayerController.fastForBackwardDuration,
@@ -2002,10 +1927,8 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                             child: TweenAnimationBuilder<double>(
                               tween: Tween<double>(begin: 0.0, end: 1.0),
                               duration: const Duration(milliseconds: 500),
-                              builder: (context, value, child) => Opacity(
-                                opacity: value,
-                                child: child,
-                              ),
+                              builder: (context, value, child) =>
+                                  Opacity(opacity: value, child: child),
                               child: ForwardSeekIndicator(
                                 duration:
                                     plPlayerController.fastForBackwardDuration,
@@ -2100,7 +2023,9 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       child: Obx(
         () => MouseInteractiveViewer(
           scaleEnabled: !plPlayerController.controlsLock.value,
-          pointerSignalFallback: _onPointerSignal,
+          pointerSignalFallback: plPlayerController.enableScrollVolume
+              ? _onPointerSignal
+              : null,
           onPointerPanZoomUpdate: _onPointerPanZoomUpdate,
           onPointerPanZoomEnd: _onPointerPanZoomEnd,
           onPointerDown: _onPointerDown,
@@ -2122,24 +2047,22 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
           childKey: _videoKey,
           child: RepaintBoundary(
             key: _videoKey,
-            child: Obx(
-              () {
-                final videoFit = plPlayerController.videoFit.value;
-                return Transform.flip(
-                  flipX: plPlayerController.flipX.value,
-                  flipY: plPlayerController.flipY.value,
-                  child: FittedBox(
-                    fit: videoFit.boxFit,
-                    alignment: widget.alignment,
-                    child: SimpleVideo(
-                      controller: plPlayerController.videoController!,
-                      fill: widget.fill,
-                      aspectRatio: videoFit.aspectRatio,
-                    ),
+            child: Obx(() {
+              final videoFit = plPlayerController.videoFit.value;
+              return Transform.flip(
+                flipX: plPlayerController.flipX.value,
+                flipY: plPlayerController.flipY.value,
+                child: FittedBox(
+                  fit: videoFit.boxFit,
+                  alignment: widget.alignment,
+                  child: SimpleVideo(
+                    controller: plPlayerController.videoController!,
+                    fill: widget.fill,
+                    aspectRatio: videoFit.aspectRatio,
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            }),
           ),
         ),
       ),
@@ -2228,9 +2151,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
                 onPressed: Get.back,
                 child: Text(
                   '取消',
-                  style: TextStyle(
-                    color: theme.colorScheme.outline,
-                  ),
+                  style: TextStyle(color: theme.colorScheme.outline),
                 ),
               ),
               TextButton(
@@ -2314,9 +2235,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
       child: SizedBox(
         width: _actionItemWidth,
         height: _actionItemHeight,
-        child: Center(
-          child: child,
-        ),
+        child: Center(child: child),
       ),
     );
   }
@@ -2334,10 +2253,7 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
     return null;
   }
 
-  Widget _buildDmAction(
-    DanmakuItem<DanmakuExtra> item,
-    Offset offset,
-  ) {
+  Widget _buildDmAction(DanmakuItem<DanmakuExtra> item, Offset offset) {
     final dx = offset.dx;
     // fullscreen
     if (dx > maxWidth) {

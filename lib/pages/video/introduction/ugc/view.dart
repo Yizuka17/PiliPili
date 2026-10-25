@@ -2,6 +2,7 @@ import 'package:Pilipili/common/assets.dart';
 import 'package:Pilipili/common/constants.dart';
 import 'package:Pilipili/common/style.dart';
 import 'package:Pilipili/common/widgets/animated_height.dart';
+import 'package:Pilipili/common/widgets/custom_icon.dart';
 import 'package:Pilipili/common/widgets/dialog/dialog.dart';
 import 'package:Pilipili/common/widgets/expandable.dart';
 import 'package:Pilipili/common/widgets/gesture/tap_gesture_recognizer.dart';
@@ -187,25 +188,29 @@ class _UgcIntroPanelState extends State<UgcIntroPanel> {
                               .plPlayerController
                               .horizontalSeasonPanel)) ...[
                     if (videoDetail.hasSeason)
-                      Obx(
-                        () => SeasonPanel(
-                          key: ValueKey(introController.videoDetail.value),
-                          heroTag: widget.heroTag,
-                          showEpisodes: widget.showEpisodes,
-                          ugcIntroController: introController,
+                      NoTranslucentArea(
+                        child: Obx(
+                          () => SeasonPanel(
+                            key: ValueKey(introController.videoDetail.value),
+                            heroTag: widget.heroTag,
+                            showEpisodes: widget.showEpisodes,
+                            ugcIntroController: introController,
+                          ),
+                        ),
+                      ),
+                    if (videoDetail.hasParts)
+                      NoTranslucentArea(
+                        child: Obx(
+                          () => PagesPanel(
+                            key: ValueKey(introController.videoDetail.value),
+                            heroTag: widget.heroTag,
+                            ugcIntroController: introController,
+                            bvid: introController.bvid,
+                            showEpisodes: widget.showEpisodes,
+                          ),
                         ),
                       ),
                   ],
-                  if (videoDetail.hasParts)
-                    Obx(
-                      () => PagesPanel(
-                        key: ValueKey(introController.videoDetail.value),
-                        heroTag: widget.heroTag,
-                        ugcIntroController: introController,
-                        bvid: introController.bvid,
-                        showEpisodes: widget.showEpisodes,
-                      ),
-                    ),
                 ],
               ),
             ),
@@ -515,6 +520,12 @@ class _UgcIntroPanelState extends State<UgcIntroPanel> {
               semanticsLabel: '收藏',
               text: !isLoading ? NumUtils.numFormat(stat!.favorite) : null,
             ),
+          ),
+          ActionItem(
+            icon: const Icon(CustomIcons.download),
+            onTap: () => videoDetailCtr.onDownload(context),
+            text: '缓存',
+            semanticsLabel: '缓存',
           ),
           Obx(
             () => ActionItem(

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:Pilipili/models_new/danmaku/interactive.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -8,7 +6,6 @@ class InteractiveDanmakuCard extends StatefulWidget {
   final InteractiveDanmaku initial;
   final bool visible;
   final int Function() progress;
-  final Future<void> Function() pause;
   final bool Function() canInteract;
   final Future<InteractiveDanmaku> Function() read;
   final Future<void> Function(InteractiveDanmaku, int, int) submit;
@@ -18,7 +15,6 @@ class InteractiveDanmakuCard extends StatefulWidget {
     required this.initial,
     required this.visible,
     required this.progress,
-    required this.pause,
     required this.canInteract,
     required this.read,
     required this.submit,
@@ -49,7 +45,6 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
         !widget.canInteract()) {
       return;
     }
-    unawaited(widget.pause());
     setState(() => selected = value);
   }
 
@@ -105,184 +100,244 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
     }
   }
 
-  Widget interactiveCard() {
-    final vote = card.kind == InteractiveKind.vote;
-    final value = card.participation != 0 ? card.participation : selected;
-    final colors = Theme.of(context).colorScheme;
-    final starColor = Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xffffd166)
-        : const Color(0xff956c00);
-    return Container(
-      key: const ValueKey('visible-card'),
-      width: 310,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHigh,
-        border: Border.all(color: colors.outlineVariant),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+  Widget interactiveCard() => LayoutBuilder(
+    builder: (context, constraints) {
+      final theme = Theme.of(context);
+      final colors = theme.colorScheme;
+      final compact = constraints.maxHeight < 260;
+      final vote = card.kind == InteractiveKind.vote;
+      final value = card.participation != 0 ? card.participation : selected;
+      final editable =
+          !busy && !acknowledged && !uncertain && card.participation == 0;
+      final showSubmit =
+          selected != 0 &&
+          card.participation == 0 &&
+          !acknowledged &&
+          !uncertain;
+      final summary = vote
+          ? '共 ${card.participantCount ?? '—'} 票'
+          : '平均 ${card.averageScore?.toStringAsFixed(1) ?? '—'}/10 · ${card.participantCount ?? '—'} 人';
+      return SizedBox(
+        width: 310,
+        child: Card.filled(
+          key: const ValueKey('visible-card'),
+          margin: EdgeInsets.zero,
+          clipBehavior: Clip.antiAlias,
+          color: colors.surfaceContainerHigh,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(compact ? 8 : 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Text(
-                    card.question,
-                    style: TextStyle(
-                      color: colors.onSurface,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                Row(
+                  children: [
+                    Icon(
+                      vote ? Icons.poll_outlined : Icons.star_outline_rounded,
+                      size: 18,
+                      color: colors.primary,
                     ),
-                  ),
-                ),
-                IconButton(
-                  tooltip: '刷新结果',
-                  onPressed: busy ? null : refresh,
-                  icon: const Icon(Icons.refresh, size: 18),
-                  color: colors.onSurfaceVariant,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 28,
-                    minHeight: 28,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
-                IconButton(
-                  key: const ValueKey('dismiss-card'),
-                  tooltip: '关闭卡片',
-                  onPressed: () => setState(() => dismissed = true),
-                  icon: const Icon(Icons.close, size: 18),
-                  color: colors.onSurfaceVariant,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minWidth: 28,
-                    minHeight: 28,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (vote) ...[
-              for (final option in card.options)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
-                  child: OutlinedButton(
-                    key: ValueKey('option-${option['idx']}'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: value == option['idx']
-                          ? colors.onPrimaryContainer
-                          : colors.onSurface,
-                      disabledForegroundColor: value == option['idx']
-                          ? colors.onPrimaryContainer
-                          : colors.onSurface,
-                      backgroundColor: value == option['idx']
-                          ? colors.primaryContainer
-                          : colors.surfaceContainerHighest,
-                      side: BorderSide(
-                        color: value == option['idx']
-                            ? colors.primary
-                            : colors.outlineVariant,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        vote ? '投票' : '评分',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
                       ),
-                      minimumSize: const Size(0, 34),
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      alignment: Alignment.centerLeft,
                     ),
-                    onPressed:
-                        busy ||
-                            acknowledged ||
-                            uncertain ||
-                            card.participation != 0 ||
-                            option['has_self_def'] == true
-                        ? null
-                        : () => choose(option['idx'] as int),
-                    child: Text(
-                      '${option['desc']}${value == option['idx'] ? ' ✓' : ''}'
-                      '${card.participation != 0 ? '  ${option['cnt'] ?? '—'} 票' : ''}',
+                    IconButton(
+                      tooltip: '刷新结果',
+                      onPressed: busy ? null : refresh,
+                      icon: const Icon(Icons.refresh, size: 18),
+                      constraints: const BoxConstraints.tightFor(
+                        width: 32,
+                        height: 32,
+                      ),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
                     ),
-                  ),
+                    IconButton(
+                      key: const ValueKey('dismiss-card'),
+                      tooltip: '关闭卡片',
+                      onPressed: () => setState(() => dismissed = true),
+                      icon: const Icon(Icons.close, size: 18),
+                      constraints: const BoxConstraints.tightFor(
+                        width: 32,
+                        height: 32,
+                      ),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ],
                 ),
-            ] else
-              Row(
-                children: [
-                  Expanded(
-                    child: Wrap(
-                      alignment: WrapAlignment.spaceBetween,
+                Flexible(
+                  child: SingleChildScrollView(
+                    key: const ValueKey('card-content'),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        for (var star = 1; star <= 5; star++)
-                          IconButton(
-                            key: ValueKey('star-$star'),
-                            tooltip: '$star 星',
-                            iconSize: 32,
-                            style: IconButton.styleFrom(
-                              fixedSize: const Size(40, 40),
-                              padding: EdgeInsets.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            visualDensity: VisualDensity.compact,
-                            color: starColor,
-                            disabledColor: starColor,
-                            onPressed:
-                                busy ||
-                                    acknowledged ||
-                                    uncertain ||
-                                    card.participation != 0
-                                ? null
-                                : () => choose(star * 2),
-                            icon: Icon(
-                              value >= star * 2
-                                  ? Icons.star_rounded
-                                  : Icons.star_outline_rounded,
-                            ),
+                        Padding(
+                          padding: EdgeInsets.only(
+                            top: compact ? 2 : 8,
+                            bottom: 8,
+                          ),
+                          child: Text(
+                            card.question,
+                            style: theme.textTheme.titleSmall,
+                          ),
+                        ),
+                        if (vote)
+                          for (final option in card.options)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 4),
+                              child: Semantics(
+                                selected: value == option['idx'],
+                                child: Material(
+                                  color: value == option['idx']
+                                      ? colors.secondaryContainer
+                                      : colors.surfaceContainerHighest,
+                                  borderRadius: BorderRadius.circular(12),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    key: ValueKey('option-${option['idx']}'),
+                                    onTap:
+                                        editable &&
+                                            option['has_self_def'] != true
+                                        ? () => choose(option['idx'] as int)
+                                        : null,
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(
+                                        minHeight: compact ? 36 : 44,
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 6,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              value == option['idx']
+                                                  ? Icons.radio_button_checked
+                                                  : Icons.radio_button_off,
+                                              size: 18,
+                                              color: value == option['idx']
+                                                  ? colors.primary
+                                                  : colors.onSurfaceVariant,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: Text(
+                                                '${option['desc']}',
+                                                style:
+                                                    theme.textTheme.bodyMedium,
+                                              ),
+                                            ),
+                                            if (card.participation != 0) ...[
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                '${option['cnt'] ?? '—'} 票',
+                                                style:
+                                                    theme.textTheme.labelMedium,
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                        else
+                          LayoutBuilder(
+                            builder: (context, starConstraints) {
+                              final starWidth =
+                                  ((starConstraints.maxWidth -
+                                              (value != 0 ? 48 : 0)) /
+                                          5)
+                                      .clamp(24.0, 40.0);
+                              return Row(
+                                children: [
+                                  for (var star = 1; star <= 5; star++)
+                                    IconButton(
+                                      key: ValueKey('star-$star'),
+                                      tooltip: '$star 星',
+                                      iconSize: compact ? 26 : 30,
+                                      constraints: BoxConstraints.tightFor(
+                                        width: starWidth,
+                                        height: compact ? 36 : 44,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      visualDensity: VisualDensity.compact,
+                                      color: colors.primary,
+                                      disabledColor: colors.primary,
+                                      onPressed: editable
+                                          ? () => choose(star * 2)
+                                          : null,
+                                      icon: Icon(
+                                        value >= star * 2
+                                            ? Icons.star_rounded
+                                            : Icons.star_outline_rounded,
+                                      ),
+                                    ),
+                                  if (value != 0)
+                                    Expanded(
+                                      child: Text(
+                                        '$value 分',
+                                        key: const ValueKey('personal-score'),
+                                        textAlign: TextAlign.end,
+                                        style: theme.textTheme.labelLarge,
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
                           ),
                       ],
                     ),
                   ),
-                  if (value != 0) ...[
-                    const SizedBox(width: 8),
-                    Text(
-                      '$value 分',
-                      key: const ValueKey('personal-score'),
-                      style: TextStyle(
-                        color: colors.onSurface,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            const SizedBox(height: 4),
-            Text(
-              vote
-                  ? '共 ${card.participantCount ?? '—'} 票'
-                  : '平均 ${card.averageScore?.toStringAsFixed(1) ?? '—'}/10，${card.participantCount ?? '—'} 人评分',
-              style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
-            ),
-            if (selected != 0 &&
-                card.participation == 0 &&
-                !acknowledged &&
-                !uncertain) ...[
-              const SizedBox(height: 8),
-              FilledButton(
-                key: const ValueKey('submit'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 ),
-                onPressed: canSubmit ? send : null,
-                child: Text(busy ? '提交中…' : '提交'),
-              ),
-            ],
-          ],
+                Padding(
+                  padding: EdgeInsets.only(top: compact ? 4 : 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          summary,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                      if (showSubmit) ...[
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          key: const ValueKey('submit'),
+                          style: FilledButton.styleFrom(
+                            minimumSize: Size(64, compact ? 32 : 40),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: canSubmit ? send : null,
+                          child: Text(busy ? '提交中…' : '提交'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-    );
-  }
+      );
+    },
+  );
 
   @override
   Widget build(BuildContext context) => !widget.visible || dismissed

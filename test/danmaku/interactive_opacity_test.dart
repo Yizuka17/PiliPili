@@ -71,7 +71,6 @@ void main() {
                           initial: card,
                           visible: true,
                           progress: () => 0,
-                          pause: () async {},
                           canInteract: () => true,
                           read: () async => card,
                           submit: (_, _, _) async {

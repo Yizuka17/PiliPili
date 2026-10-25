@@ -8,7 +8,6 @@ import 'package:Pilipili/http/browser_ua.dart';
 import 'package:Pilipili/http/constants.dart';
 import 'package:Pilipili/http/init.dart';
 import 'package:Pilipili/http/loading_state.dart';
-import 'package:Pilipili/http/login.dart';
 import 'package:Pilipili/models/common/account_type.dart';
 import 'package:Pilipili/models/common/video/video_type.dart';
 import 'package:Pilipili/models/home/rcmd/result.dart';
@@ -148,7 +147,7 @@ abstract final class VideoHttp {
       queryParameters: params,
       options: Options(
         headers: {
-          'buvid': LoginHttp.buvid,
+          'buvid': Accounts.get(.recommend).buvid,
           'fp_local': '1111111111111111111111111111111111111111111111111111111111111111',
           'fp_remote': '1111111111111111111111111111111111111111111111111111111111111111',
           'session_id': '11111111',
@@ -385,9 +384,9 @@ abstract final class VideoHttp {
       queryParameters: {'bvid': bvid},
     );
     if (res.data['code'] == 0) {
-      final items = (res.data['data'] as List?)?.map(
-        (i) => HotVideoItemModel.fromJson(i),
-      );
+      final items = (res.data['data'] as List?)
+          ?.whereNotBlocked((e) => e['owner']?['mid'])
+          .map((i) => HotVideoItemModel.fromJson(i));
       final list = RecommendFilter.applyFilterToRelatedVideos
           ? items?.where((i) => !RecommendFilter.filterAll(i)).toList()
           : items?.toList();

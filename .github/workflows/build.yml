@@ -105,8 +105,16 @@ jobs:
               run: lib/scripts/build.ps1 android
 
             - name: Flutter Build Release Apk
+              # Run the same regression suite on the Android build host before packaging.
+              # It covers interactive cards, quality selection, backups and playback services.
               if: ${{ github.event_name == 'workflow_dispatch' }}
-              run: flutter build apk --release --split-per-abi --dart-define-from-file=pili_release.json --no-pub
+              run: |
+                  flutter analyze --no-pub --no-fatal-infos lib test
+                  flutter test test --reporter expanded
+
+            - name: Package Android arm64-v8a
+              if: ${{ github.event_name == 'workflow_dispatch' }}
+              run: flutter build apk --release --target-platform android-arm64 --split-per-abi --dart-define-from-file=pili_release.json --no-pub
 
             - name: Flutter Build Dev Apk
               if: ${{ github.event_name == 'pull_request' }}
@@ -136,20 +144,6 @@ jobs:
                   archive: false
                   name: Android_arm64-v8a
                   path: Pilipili_android_*_arm64-v8a.apk
-
-            - name: 上传
-              uses: actions/upload-artifact@v7
-              with:
-                  archive: false
-                  name: Android_armeabi-v7a
-                  path: Pilipili_android_*_armeabi-v7a.apk
-
-            - name: 上传
-              uses: actions/upload-artifact@v7
-              with:
-                  archive: false
-                  name: Android_x86_64
-                  path: Pilipili_android_*_x86_64.apk
 
     ios:
         if: ${{ (github.event_name == 'pull_request' && github.repository == 'Yizuka17/PiliPili') || github.event.inputs.build_ios == 'true' }}
@@ -201,7 +195,7 @@ jobs:
                   apk_count=$(find release-assets -maxdepth 1 -name '*.apk' | wc -l)
                   zip_count=$(find release-assets -maxdepth 1 -name '*_portable.zip' | wc -l)
                   exe_count=$(find release-assets -maxdepth 1 -name '*_setup.exe' | wc -l)
-                  test "$apk_count" -eq 3
+                  test "$apk_count" -eq 1
                   test "$zip_count" -eq 1
                   test "$exe_count" -eq 1
                   (cd release-assets && sha256sum Pilipili_* > SHA256SUMS.txt)

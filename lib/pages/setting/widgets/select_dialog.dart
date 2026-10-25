@@ -4,7 +4,7 @@ import 'package:Pilipili/http/browser_ua.dart';
 import 'package:Pilipili/http/constants.dart';
 import 'package:Pilipili/http/video.dart';
 import 'package:Pilipili/models/common/video/cdn_type.dart';
-import 'package:Pilipili/models/common/video/video_quality.dart';
+import 'package:Pilipili/models/common/video/base_quality.dart';
 import 'package:Pilipili/models/common/video/video_type.dart';
 import 'package:Pilipili/models/video/play/url.dart';
 import 'package:Pilipili/utils/storage_pref.dart';

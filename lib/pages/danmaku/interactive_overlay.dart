@@ -200,7 +200,6 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
                       visible:
                           widget.enabled && inView && showing.contains(card.id),
                       progress: () => widget.player.positionInMilliseconds,
-                      pause: () => widget.player.pause(),
                       canInteract: canInteract,
                       read: () => readCard(card, boundAccount),
                       submit: (fresh, choice, milliseconds) async {

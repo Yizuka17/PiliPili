@@ -13,11 +13,8 @@ import 'package:Pilipili/utils/utils.dart';
 import 'package:path/path.dart' as path;
 
 class PlDanmakuController {
-  PlDanmakuController(
-    this._cid,
-    this._plPlayerController,
-    this._isFileSource,
-  ) : _mergeDanmaku = _plPlayerController.mergeDanmaku;
+  PlDanmakuController(this._cid, this._plPlayerController, this._isFileSource)
+    : _mergeDanmaku = _plPlayerController.mergeDanmaku;
 
   final int _cid;
   final PlPlayerController _plPlayerController;

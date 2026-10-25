@@ -18,8 +18,8 @@ import 'package:Pilipili/services/service_locator.dart';
 import 'package:Pilipili/services/touch_diagnostics.dart';
 import 'package:Pilipili/services/windows_input.dart';
 import 'package:Pilipili/utils/cache_manager.dart';
-import 'package:Pilipili/utils/calc_window_position.dart';
 import 'package:Pilipili/utils/date_utils.dart';
+import 'package:Pilipili/utils/desktop/calc_window_position.dart';
 import 'package:Pilipili/utils/device_utils.dart';
 import 'package:Pilipili/utils/extension/core_palettes_ext.dart';
 import 'package:Pilipili/utils/extension/theme_ext.dart';
@@ -49,7 +49,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:screen_brightness_platform_interface/screen_brightness_platform_interface.dart';
-import 'package:window_manager/window_manager.dart' hide calcWindowPosition;
+import 'package:window_manager/window_manager.dart';
 
 WebViewEnvironment? webViewEnvironment;
 
@@ -141,7 +141,7 @@ void main() async {
         ),
       );
     }
-  } else if (Platform.isMacOS) {
+  } else if (Platform.isMacOS || Platform.isLinux) {
     await setupServiceLocator();
   }
 
@@ -179,24 +179,6 @@ void main() async {
     } else {
       ScreenBrightnessPlatform.instance.setAutoReset(false);
     }
-  } else if (PlatformUtils.isDesktop) {
-    await windowManager.ensureInitialized();
-
-    final windowOptions = WindowOptions(
-      minimumSize: const Size(400, 720),
-      skipTaskbar: false,
-      titleBarStyle: Pref.showWindowTitleBar ? .normal : .hidden,
-      title: Constants.appName,
-    );
-    windowManager.waitUntilReadyToShow(windowOptions, () async {
-      final windowSize = Pref.windowSize;
-      await windowManager.setBounds(
-        await calcWindowPosition(windowSize) & windowSize,
-      );
-      if (Pref.isWindowMaximized) await windowManager.maximize();
-      await windowManager.show();
-      await windowManager.focus();
-    });
   }
 
   if (Pref.dynamicColor) {
@@ -224,6 +206,29 @@ void main() async {
     );
   } else {
     runApp(const MyApp());
+  }
+
+  if (PlatformUtils.isDesktop) {
+    final window = WindowManager.instance.getCurrent();
+    if (window != null) {
+      window
+        ..titleBarStyle = Pref.showWindowTitleBar ? .normal : .hidden
+        ..isWindowControlButtonsVisible = true
+        ..bounds = calcWindowBounds()
+        ..minimumSize = DeviceUtils.desktopMinSize
+        ..isVisibleInTaskbar = true
+        ..title = Constants.appName;
+      if (Pref.isWindowMaximized) window.maximize();
+      void show([_]) => window
+        ..focus()
+        ..show();
+      switch (WidgetsBinding.instance.schedulerPhase) {
+        case .idle || .postFrameCallbacks:
+          WidgetsBinding.instance.scheduleFrameCallback(show);
+        case .transientCallbacks || .midFrameMicrotasks || .persistentCallbacks:
+          WidgetsBinding.instance.addPostFrameCallback(show);
+      }
+    }
   }
 }
 

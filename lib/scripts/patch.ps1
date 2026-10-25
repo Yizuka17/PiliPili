@@ -26,6 +26,10 @@ function Apply-ProjectPatch([string]$PatchPath) {
         $env:GIT_CEILING_DIRECTORIES = $previousCeiling
     }
 }
+$env:GIT_AUTHOR_NAME = "ci"
+$env:GIT_AUTHOR_EMAIL = "example@example.com"
+$env:GIT_COMMITTER_NAME = "ci"
+$env:GIT_COMMITTER_EMAIL = "example@example.com"
 
 # TODO: remove
 # https://github.com/flutter/flutter/issues/182281

@@ -7,11 +7,18 @@ import 'package:Pilipili/http/reply.dart';
 import 'package:Pilipili/models/dynamics/result.dart';
 import 'package:Pilipili/models_new/dynamic/dyn_mention/item.dart';
 import 'package:Pilipili/pages/common/dyn/common_dyn_controller.dart';
+import 'package:Pilipili/pages/common/reply_controller.dart';
 import 'package:Pilipili/utils/id_utils.dart';
 import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
 import 'package:get/get.dart';
 
-class DynamicDetailController extends CommonDynController with ReloadMixin {
+class DynamicDetailController extends CommonDynController
+    with
+        ReloadMixin,
+        GetSingleTickerProviderStateMixin,
+        ReplyLocateMixin,
+        MainReplyLocateMixin,
+        DynReplyLocateMixin {
   DynamicDetailController({super.count});
 
   @override
@@ -28,7 +35,7 @@ class DynamicDetailController extends CommonDynController with ReloadMixin {
   @override
   void onInit() {
     super.onInit();
-    dynItem = Get.arguments['item'];
+    dynItem = args['item'];
     final commentType = dynItem.basic?.commentType;
     final commentIdStr = dynItem.basic?.commentIdStr;
     if (commentType != null &&

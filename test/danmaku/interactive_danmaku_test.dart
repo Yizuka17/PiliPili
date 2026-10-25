@@ -42,7 +42,6 @@ Widget harness(
   Brightness brightness = Brightness.dark,
   required Future<InteractiveDanmaku> Function() read,
   required Future<void> Function(InteractiveDanmaku, int, int) submit,
-  Future<void> Function()? pause,
 }) => MaterialApp(
   theme: ThemeData(
     useMaterial3: true,
@@ -62,7 +61,6 @@ Widget harness(
             initial: card,
             visible: visible,
             progress: () => card.progressMs,
-            pause: pause ?? () async {},
             canInteract: () => true,
             read: read,
             submit: submit,
@@ -185,17 +183,14 @@ void main() {
     );
 
     testWidgets(
-      '${index == 0 ? 'vote' : 'grade'} selection pauses only; acknowledge hides submit even with stale refresh',
+      '${index == 0 ? 'vote' : 'grade'} selection does not submit; acknowledge hides submit even with stale refresh',
       (tester) async {
         final card = fixture(index);
         final pending = Completer<InteractiveDanmaku>();
-        var reads = 0, writes = 0, pauses = 0;
+        var reads = 0, writes = 0;
         await tester.pumpWidget(
           harness(
             card,
-            pause: () async {
-              pauses++;
-            },
             read: () {
               reads++;
               return reads == 2 ? pending.future : Future.value(card);
@@ -214,7 +209,6 @@ void main() {
           find.byKey(ValueKey(index == 0 ? 'option-1' : 'star-5')),
         );
         await tester.pumpAndSettle();
-        expect(pauses, 1);
         expect(writes, 0);
         expect(find.textContaining('请选择'), findsNothing);
         expect(find.textContaining('已选择'), findsNothing);
@@ -256,7 +250,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.byKey(const ValueKey('submit')), findsNothing);
         if (index == 0) {
-          expect(find.textContaining('有 ✓'), findsOneWidget);
+          expect(find.text('有'), findsOneWidget);
         } else {
           expect(find.text('8 分'), findsOneWidget);
           final y = tester.getCenter(find.byKey(const ValueKey('star-1'))).dy;

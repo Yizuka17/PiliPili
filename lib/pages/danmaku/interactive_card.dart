@@ -25,6 +25,7 @@ class InteractiveDanmakuCard extends StatefulWidget {
 }
 
 class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
+  final ScrollController _contentController = ScrollController();
   late InteractiveDanmaku card = widget.initial;
   int selected = 0;
   bool busy = false, uncertain = false, acknowledged = false, dismissed = false;
@@ -36,6 +37,12 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
       !busy &&
       !uncertain &&
       !acknowledged;
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    super.dispose();
+  }
 
   void choose(int value) {
     if (busy ||
@@ -73,7 +80,8 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
     var attempted = false;
     try {
       final fresh = await widget.read();
-      if (!mounted) return;
+      if (!mounted || !widget.visible || dismissed || !widget.canInteract())
+        return;
       setState(() => card = fresh);
       if (fresh.participation != 0) return;
       attempted = true;
@@ -175,160 +183,172 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
                   ],
                 ),
                 Flexible(
-                  child: SingleChildScrollView(
-                    key: const ValueKey('card-content'),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(
-                            top: compact ? 2 : 8,
-                            bottom: 8,
+                  child: Scrollbar(
+                    controller: _contentController,
+                    thumbVisibility: compact,
+                    child: SingleChildScrollView(
+                      key: const ValueKey('card-content'),
+                      controller: _contentController,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: compact ? 2 : 8,
+                              bottom: 8,
+                            ),
+                            child: Text(
+                              card.question,
+                              style: theme.textTheme.titleSmall,
+                            ),
                           ),
-                          child: Text(
-                            card.question,
-                            style: theme.textTheme.titleSmall,
-                          ),
-                        ),
-                        if (vote)
-                          for (final option in card.options)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Semantics(
-                                selected: value == option['idx'],
-                                child: Material(
-                                  color: value == option['idx']
-                                      ? colors.secondaryContainer
-                                      : colors.surfaceContainerHighest,
-                                  borderRadius: BorderRadius.circular(12),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: InkWell(
-                                    key: ValueKey('option-${option['idx']}'),
-                                    onTap:
-                                        editable &&
-                                            option['has_self_def'] != true
-                                        ? () => choose(option['idx'] as int)
-                                        : null,
-                                    child: ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minHeight: compact ? 36 : 44,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 6,
+                          if (vote)
+                            for (final option in card.options)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Semantics(
+                                  selected: value == option['idx'],
+                                  child: Material(
+                                    color: value == option['idx']
+                                        ? colors.secondaryContainer
+                                        : colors.surfaceContainerHighest,
+                                    borderRadius: BorderRadius.circular(12),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: InkWell(
+                                      key: ValueKey('option-${option['idx']}'),
+                                      onTap:
+                                          editable &&
+                                              option['has_self_def'] != true
+                                          ? () => choose(option['idx'] as int)
+                                          : null,
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(
+                                          minHeight: compact ? 36 : 44,
                                         ),
-                                        child: Row(
-                                          children: [
-                                            Icon(
-                                              value == option['idx']
-                                                  ? Icons.radio_button_checked
-                                                  : Icons.radio_button_off,
-                                              size: 18,
-                                              color: value == option['idx']
-                                                  ? colors.primary
-                                                  : colors.onSurfaceVariant,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Text(
-                                                '${option['desc']}',
-                                                style:
-                                                    theme.textTheme.bodyMedium,
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 6,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                value == option['idx']
+                                                    ? Icons.radio_button_checked
+                                                    : Icons.radio_button_off,
+                                                size: 18,
+                                                color: value == option['idx']
+                                                    ? colors.primary
+                                                    : colors.onSurfaceVariant,
                                               ),
-                                            ),
-                                            if (card.participation != 0) ...[
                                               const SizedBox(width: 8),
-                                              Text(
-                                                '${option['cnt'] ?? '—'} 票',
-                                                style:
-                                                    theme.textTheme.labelMedium,
+                                              Expanded(
+                                                child: Text(
+                                                  '${option['desc']}',
+                                                  style: theme
+                                                      .textTheme
+                                                      .bodyMedium,
+                                                ),
                                               ),
+                                              if (card.participation != 0) ...[
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  '${option['cnt'] ?? '—'} 票',
+                                                  style: theme
+                                                      .textTheme
+                                                      .labelMedium,
+                                                ),
+                                              ],
                                             ],
-                                          ],
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            )
-                        else
-                          LayoutBuilder(
-                            builder: (context, starConstraints) {
-                              final starWidth =
-                                  ((starConstraints.maxWidth -
-                                              (value != 0 ? 48 : 0)) /
-                                          5)
-                                      .clamp(24.0, 40.0);
-                              return Row(
-                                children: [
-                                  for (var star = 1; star <= 5; star++)
-                                    IconButton(
-                                      key: ValueKey('star-$star'),
-                                      tooltip: '$star 星',
-                                      iconSize: compact ? 26 : 30,
-                                      constraints: BoxConstraints.tightFor(
-                                        width: starWidth,
-                                        height: compact ? 36 : 44,
+                              )
+                          else
+                            LayoutBuilder(
+                              builder: (context, starConstraints) {
+                                final starWidth =
+                                    ((starConstraints.maxWidth -
+                                                (value != 0 ? 48 : 0)) /
+                                            5)
+                                        .clamp(24.0, 40.0);
+                                return Row(
+                                  children: [
+                                    for (var star = 1; star <= 5; star++)
+                                      IconButton(
+                                        key: ValueKey('star-$star'),
+                                        tooltip: '$star 星',
+                                        iconSize: compact ? 26 : 30,
+                                        constraints: BoxConstraints.tightFor(
+                                          width: starWidth,
+                                          height: compact ? 36 : 44,
+                                        ),
+                                        padding: EdgeInsets.zero,
+                                        visualDensity: VisualDensity.compact,
+                                        color: colors.primary,
+                                        disabledColor: colors.primary,
+                                        onPressed: editable
+                                            ? () => choose(star * 2)
+                                            : null,
+                                        icon: Icon(
+                                          value >= star * 2
+                                              ? Icons.star_rounded
+                                              : Icons.star_outline_rounded,
+                                        ),
                                       ),
-                                      padding: EdgeInsets.zero,
-                                      visualDensity: VisualDensity.compact,
-                                      color: colors.primary,
-                                      disabledColor: colors.primary,
-                                      onPressed: editable
-                                          ? () => choose(star * 2)
-                                          : null,
-                                      icon: Icon(
-                                        value >= star * 2
-                                            ? Icons.star_rounded
-                                            : Icons.star_outline_rounded,
+                                    if (value != 0)
+                                      Expanded(
+                                        child: Text(
+                                          '$value 分',
+                                          key: const ValueKey('personal-score'),
+                                          textAlign: TextAlign.end,
+                                          style: theme.textTheme.labelLarge,
+                                        ),
                                       ),
-                                    ),
-                                  if (value != 0)
-                                    Expanded(
-                                      child: Text(
-                                        '$value 分',
-                                        key: const ValueKey('personal-score'),
-                                        textAlign: TextAlign.end,
-                                        style: theme.textTheme.labelLarge,
-                                      ),
-                                    ),
-                                ],
-                              );
-                            },
-                          ),
-                      ],
+                                  ],
+                                );
+                              },
+                            ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.only(top: compact ? 4 : 8),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          summary,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: colors.onSurfaceVariant,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: compact ? 32 : 40),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            summary,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      ),
-                      if (showSubmit) ...[
-                        const SizedBox(width: 8),
-                        FilledButton(
-                          key: const ValueKey('submit'),
-                          style: FilledButton.styleFrom(
-                            minimumSize: Size(64, compact ? 32 : 40),
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        if (showSubmit) ...[
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            key: const ValueKey('submit'),
+                            style: FilledButton.styleFrom(
+                              minimumSize: Size(64, compact ? 32 : 40),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: canSubmit ? send : null,
+                            child: Text(busy ? '提交中…' : '提交'),
                           ),
-                          onPressed: canSubmit ? send : null,
-                          child: Text(busy ? '提交中…' : '提交'),
-                        ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ],

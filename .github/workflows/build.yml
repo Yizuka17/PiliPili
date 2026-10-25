@@ -104,7 +104,7 @@ jobs:
               shell: pwsh
               run: lib/scripts/build.ps1 android
 
-            - name: Flutter Build Release Apk
+            - name: Analyze and test
               # Run the same regression suite on the Android build host before packaging.
               # It covers interactive cards, quality selection, backups and playback services.
               if: ${{ github.event_name == 'workflow_dispatch' }}

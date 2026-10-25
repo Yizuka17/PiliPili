@@ -5,12 +5,15 @@ import 'package:Pilipili/models_new/danmaku/interactive.dart';
 import 'package:Pilipili/pages/danmaku/interactive_card.dart';
 import 'package:Pilipili/pages/danmaku/interactive_layout.dart';
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
-import 'package:flutter/services.dart' show FontLoader;
+import 'package:flutter/services.dart' show FontLoader, rootBundle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 void main() {
   setUpAll(() async {
+    await (FontLoader(
+      'MaterialIcons',
+    )..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'))).load();
     final font = Platform.environment['PILI_UI_FONT'];
     if (font != null) {
       final loader = FontLoader('Interactive UI QA')
@@ -136,17 +139,19 @@ void main() {
           );
           expect(tester.takeException(), isNull);
           if (Platform.environment['PILI_UI_CAPTURE'] == '1') {
-            final image =
-                await (boundary.currentContext!.findRenderObject()!
-                        as RenderRepaintBoundary)
-                    .toImage(pixelRatio: 2);
-            final bytes = await image.toByteData(
-              format: ui.ImageByteFormat.png,
-            );
-            await Directory('build/ui-qa').create(recursive: true);
-            await File('build/ui-qa/${kind.name}-${width.toInt()}.png')
-                .writeAsBytes(bytes!.buffer.asUint8List());
-            image.dispose();
+            await tester.runAsync(() async {
+              final image =
+                  await (boundary.currentContext!.findRenderObject()!
+                          as RenderRepaintBoundary)
+                      .toImage(pixelRatio: 2);
+              final bytes = await image.toByteData(
+                format: ui.ImageByteFormat.png,
+              );
+              await Directory('build/ui-qa').create(recursive: true);
+              await File('build/ui-qa/${kind.name}-${width.toInt()}.png')
+                  .writeAsBytes(bytes!.buffer.asUint8List());
+              image.dispose();
+            });
           }
           await tester.tap(submit);
           await tester.pumpAndSettle();

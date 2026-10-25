@@ -153,6 +153,32 @@ void main() {
 
   for (final index in [0, 1]) {
     testWidgets(
+      'card expiration during preflight cancels submission ($index)',
+      (tester) async {
+        final card = fixture(index);
+        final pending = Completer<InteractiveDanmaku>();
+        var writes = 0;
+        Widget page(bool visible) => harness(
+          card,
+          visible: visible,
+          read: () => pending.future,
+          submit: (_, _, _) async => writes++,
+        );
+        await tester.pumpWidget(page(true));
+        await tester.tap(
+          find.byKey(ValueKey(index == 0 ? 'option-1' : 'star-5')),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('submit')));
+        await tester.pump();
+        await tester.pumpWidget(page(false));
+        pending.complete(card);
+        await tester.pumpAndSettle();
+        expect(writes, 0);
+      },
+    );
+
+    testWidgets(
       'switching video before participation read completes prevents a stale submission ($index)',
       (tester) async {
         final card = fixture(index);

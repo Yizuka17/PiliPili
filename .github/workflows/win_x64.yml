@@ -63,7 +63,7 @@ jobs:
           flutter build windows --release --dart-define-from-file=pili_release.json --no-pub
           if ($LASTEXITCODE -ne 0) { throw 'Windows release compilation failed' }
 
-      - name: Add runtime and package installer
+      - name: Test Windows touch and system integrations
         shell: pwsh
         run: |
           cmake -S tool/tests -B .fvm/native-tests -G "Visual Studio 17 2022" -A x64

@@ -1,8 +1,15 @@
-param([string]$InnoCompiler = 'ISCC.exe')
+param(
+    [string]$InnoCompiler = 'ISCC.exe',
+    [string]$BundlePath,
+    [string]$OutputDirectory
+)
 
 $ErrorActionPreference = 'Stop'
 $workspace = Split-Path $PSScriptRoot -Parent
-$bundle = Join-Path $workspace 'build/windows/x64/runner/Release'
+$bundle = if ($BundlePath) { (Resolve-Path -LiteralPath $BundlePath).Path } else { Join-Path $workspace 'build/windows/x64/runner/Release' }
+if (-not $OutputDirectory) { $OutputDirectory = Join-Path $workspace 'dist' }
+New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
+$OutputDirectory = (Resolve-Path -LiteralPath $OutputDirectory).Path
 $manifest = Get-Content (Join-Path $bundle 'release-build.json') -Raw | ConvertFrom-Json
 if ($manifest.mode -ne 'release' -or $manifest.touchLoggingEnabled) {
     throw 'Build a production release before packaging'
@@ -37,9 +44,9 @@ $languages = Join-Path (Split-Path $compiler -Parent) 'Languages'
 Copy-Item (Join-Path $workspace 'windows/packaging/exe/ChineseSimplified.isl') $languages
 $script = Join-Path $workspace '.fvm/Pilipili-release.iss'
 [IO.File]::WriteAllText($script, $source, [Text.UTF8Encoding]::new($false))
-& $compiler ('/O' + (Join-Path $workspace 'dist')) $script
+& $compiler ('/O' + $OutputDirectory) $script
 if ($LASTEXITCODE -ne 0) { throw 'Inno Setup compilation failed' }
-$installer = Join-Path $workspace "dist/$baseName.exe"
+$installer = Join-Path $OutputDirectory "$baseName.exe"
 $sha = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
 "$sha  $baseName.exe" | Set-Content -LiteralPath "$installer.sha256" -Encoding ascii
 Write-Host "Installer: $installer"

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:Pilipili/models_new/danmaku/interactive.dart';
+import 'package:Pilipili/pages/danmaku/capsule_countdown_border.dart';
 import 'package:Pilipili/pages/danmaku/interactive_card.dart';
 import 'package:Pilipili/pages/danmaku/interactive_layout.dart';
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
@@ -139,6 +140,51 @@ void main() {
     }
   });
   for (final kind in InteractiveKind.values) {
+    testWidgets('$kind countdown surrounds the full pill at portrait sizes', (
+      tester,
+    ) async {
+      final position = ValueNotifier(3500);
+      addTearDown(position.dispose);
+      for (final width in [240.0, 360.0, 412.0]) {
+        final capture = GlobalKey();
+        await tester.pumpWidget(
+          _Harness(
+            card: _card(kind),
+            position: position,
+            width: width,
+            captureKey: capture,
+          ),
+        );
+        await tester.pumpAndSettle();
+        final pill = tester.getRect(
+          find.byKey(const ValueKey('interactive-capsule')),
+        );
+        final border = tester.getRect(
+          find.byKey(const ValueKey('capsule-countdown')),
+        );
+        expect(border, pill);
+        expect(border.width, greaterThan(border.height));
+        expect(find.byType(CircularProgressIndicator), findsNothing);
+        expect(
+          tester
+              .widget<CapsuleCountdownBorder>(
+                find.byKey(const ValueKey('capsule-countdown')),
+              )
+              .value,
+          .75,
+        );
+        await _capture(
+          tester,
+          capture,
+          'outline-${kind.name}-${width.toInt()}',
+        );
+        await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+        await tester.pumpAndSettle();
+        expect(find.byKey(const ValueKey('visible-card')), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      }
+    });
+
     testWidgets(
       '$kind starts as a capsule; countdown follows playback and seeking',
       (tester) async {
@@ -167,10 +213,10 @@ void main() {
           8,
         );
         double remaining() => tester
-            .widget<CircularProgressIndicator>(
+            .widget<CapsuleCountdownBorder>(
               find.byKey(const ValueKey('capsule-countdown')),
             )
-            .value!;
+            .value;
         expect(remaining(), 1);
         position.value = 3500;
         await tester.pump();

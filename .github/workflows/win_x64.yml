@@ -42,6 +42,10 @@ jobs:
           Copy-Item "windows/packaging/exe/ChineseSimplified.isl" "C:\Program Files (x86)\Inno Setup 6\Languages\ChineseSimplified.isl"
         shell: pwsh
 
+      - name: Test installer upgrade discovery
+        shell: pwsh
+        run: tool/tests/test_installer_upgrade.ps1 -InnoCompiler "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe"
+
       - name: Set and Extract version
         shell: pwsh
         run: lib/scripts/build.ps1

@@ -1,4 +1,5 @@
 import 'package:Pilipili/models_new/danmaku/interactive.dart';
+import 'package:Pilipili/pages/danmaku/capsule_countdown_border.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// A timed capsule retains its choice and acknowledgement through fullscreen.
@@ -466,24 +467,19 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
             child: InkWell(
               key: const ValueKey('interactive-capsule'),
               onTap: () => setExpanded(true),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      width: 10,
-                      height: 10,
-                      child: CircularProgressIndicator(
-                        key: const ValueKey('capsule-countdown'),
-                        value: (remaining / card.durationMs).clamp(0.0, 1.0),
-                        strokeWidth: 1.5,
-                        color: colors.primary,
-                        backgroundColor: colors.outlineVariant,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
+              child: CapsuleCountdownBorder(
+                key: const ValueKey('capsule-countdown'),
+                value: (remaining / card.durationMs).clamp(0.0, 1.0),
+                color: colors.primary,
+                trackColor: colors.outlineVariant,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4,
+                  ),
+                  child: Center(
+                    widthFactor: 1,
+                    child: Text(
                       label,
                       style: TextStyle(
                         fontSize: 9,
@@ -492,7 +488,7 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),

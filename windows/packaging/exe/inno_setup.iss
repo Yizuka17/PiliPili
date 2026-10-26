@@ -6,7 +6,10 @@ AppPublisher={{PUBLISHER_NAME}}
 AppPublisherURL={{PUBLISHER_URL}}
 AppSupportURL={{PUBLISHER_URL}}
 AppUpdatesURL={{PUBLISHER_URL}}
-DefaultDirName={{INSTALL_DIR_NAME}}
+DefaultDirName={code:GetInstallDir}
+; Resolve both registry views and installation scopes before choosing a path.
+UsePreviousAppDir=no
+DisableDirPage=no
 DisableProgramGroupPage=yes
 OutputDir=.
 OutputBaseFilename={{OUTPUT_BASE_FILENAME}}
@@ -52,3 +55,63 @@ Root: HKCU; Subkey: "Software\\Classes\\bilibili\\shell\\open\\command"; ValueTy
 
 [Run]
 Filename: "{app}\\{{EXECUTABLE_NAME}}"; Description: "{cm:LaunchProgram,{{DISPLAY_NAME}}}"; Flags: runascurrentuser nowait postinstall skipifsilent
+
+[Code]
+var
+  PreviousDirChecked: Boolean;
+  PreviousDir: String;
+
+function RegisteredInstallDir(Root: Integer; const Key: String): String;
+var
+  Candidate: String;
+begin
+  Result := '';
+  if not RegQueryStringValue(Root, Key, 'Inno Setup: App Path', Candidate) then
+    RegQueryStringValue(Root, Key, 'InstallLocation', Candidate);
+  Candidate := RemoveQuotes(Trim(Candidate));
+  if (Candidate <> '') and
+     (FileExists(AddBackslash(Candidate) + 'pilipili.exe') or
+      FileExists(AddBackslash(Candidate) + 'piliplus.exe')) then
+    Result := Candidate;
+end;
+
+function FindPreviousDir: String;
+var
+  Key, LegacyKey: String;
+begin
+  if not PreviousDirChecked then begin
+    PreviousDirChecked := True;
+    Key := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{{APP_ID}}_is1';
+    LegacyKey := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' +
+      '{' + '{{APP_ID}}' + '}_is1';
+    PreviousDir := RegisteredInstallDir(HKLM64, Key);
+    if PreviousDir = '' then PreviousDir := RegisteredInstallDir(HKLM32, Key);
+    if PreviousDir = '' then PreviousDir := RegisteredInstallDir(HKCU64, Key);
+    if PreviousDir = '' then PreviousDir := RegisteredInstallDir(HKCU32, Key);
+    if PreviousDir = '' then PreviousDir := RegisteredInstallDir(HKLM64, LegacyKey);
+    if PreviousDir = '' then PreviousDir := RegisteredInstallDir(HKLM32, LegacyKey);
+    if PreviousDir = '' then PreviousDir := RegisteredInstallDir(HKCU64, LegacyKey);
+    if PreviousDir = '' then PreviousDir := RegisteredInstallDir(HKCU32, LegacyKey);
+    if PreviousDir <> '' then
+      Log('Pilipili upgrade directory: ' + PreviousDir)
+    else
+      Log('Pilipili: no existing installation found');
+  end;
+  Result := PreviousDir;
+end;
+
+function GetInstallDir(Param: String): String;
+begin
+  Result := FindPreviousDir;
+  if Result = '' then Result := ExpandConstant('{{INSTALL_DIR_NAME}}');
+end;
+
+procedure InitializeWizard;
+begin
+  Log('Pilipili selected install directory: ' + WizardDirValue);
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := (PageID = wpSelectDir) and (FindPreviousDir <> '');
+end;

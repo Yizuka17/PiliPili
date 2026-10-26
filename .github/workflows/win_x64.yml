@@ -44,7 +44,7 @@ jobs:
 
       - name: Test installer upgrade discovery
         shell: pwsh
-        run: tool/tests/test_installer_upgrade.ps1 -InnoCompiler "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe"
+        run: tool/tests/windows_installer_upgrade_test.ps1 -InnoCompiler "${env:ProgramFiles(x86)}/Inno Setup 6/ISCC.exe"
 
       - name: Set and Extract version
         shell: pwsh
@@ -131,3 +131,4 @@ jobs:
           archive: false
           name: Windows-setup-x64-release
           path: Pilipili-Win-Setup/Pilipili_windows_*.exe
+

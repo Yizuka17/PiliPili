@@ -163,7 +163,6 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
         selected != 0 && card.participation == 0 && !acknowledged && !uncertain;
     final text = theme.textTheme.bodySmall!.copyWith(
       fontSize: 9,
-      fontWeight: FontWeight.w400,
       height: 1.15,
       letterSpacing: 0,
     );
@@ -192,7 +191,7 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
         color: colors.surfaceContainerHigh,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: Padding(
-          padding: const EdgeInsets.all(5),
+          padding: const EdgeInsets.all(8),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -211,19 +210,19 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 2),
+                                padding: const EdgeInsets.only(bottom: 5),
                                 child: Text(
                                   card.question,
                                   style: text.copyWith(
                                     fontSize: 9.5,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
                               if (vote)
                                 for (final option in card.options)
                                   Padding(
-                                    padding: const EdgeInsets.only(bottom: 2),
+                                    padding: const EdgeInsets.only(bottom: 4),
                                     child: Semantics(
                                       selected: value == option['idx'],
                                       child: Material(
@@ -244,13 +243,13 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
                                               : null,
                                           child: ConstrainedBox(
                                             constraints: const BoxConstraints(
-                                              minHeight: 18,
+                                              minHeight: 20,
                                             ),
                                             child: Padding(
                                               padding:
                                                   const EdgeInsets.symmetric(
-                                                    horizontal: 5,
-                                                    vertical: 3,
+                                                    horizontal: 8,
+                                                    vertical: 4,
                                                   ),
                                               child: Row(
                                                 children: [
@@ -351,7 +350,7 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
                     Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -367,7 +366,7 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
                   ],
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 6),
               Row(
                 children: [
                   Expanded(
@@ -382,17 +381,17 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
                     ),
                   ),
                   if (showSubmit) ...[
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 6),
                     FilledButton(
                       key: const ValueKey('submit'),
                       onPressed: canSubmit ? send : null,
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(36, 20),
-                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         textStyle: text.copyWith(
                           fontSize: 9,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       child: Text(busy ? '提交中' : '提交'),

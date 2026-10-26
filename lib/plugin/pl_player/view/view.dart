@@ -1,3 +1,5 @@
+import 'package:Pilipili/common/widgets/progress_bar/progress_hover_time.dart';
+
 import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
@@ -1688,59 +1690,65 @@ class _PLVideoPlayerState extends State<PLVideoPlayer>
               }
               return Offstage(
                 offstage: offstage,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  alignment: Alignment.bottomCenter,
-                  children: [
-                    Obx(
-                      () => ProgressBar(
-                        progress: plPlayerController.progress,
-                        buffered: plPlayerController.buffered.value,
-                        total: plPlayerController.duration.value,
-                        progressBarColor: primary,
-                        baseBarColor: const Color(0x33FFFFFF),
-                        bufferedBarColor: bufferedBarColor,
-                        thumbColor: primary,
-                        thumbGlowColor: thumbGlowColor,
-                        barHeight: 3.5,
-                        thumbRadius: 2.5,
-                      ),
-                    ),
-                    if (plPlayerController.enableBlock &&
-                        videoDetailController.segmentProgressList.isNotEmpty)
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0.75,
-                        child: SegmentProgressBar(
-                          segments: videoDetailController.segmentProgressList,
+                child: ProgressHoverTime(
+                  total: plPlayerController.duration.value,
+                  enabled: PlatformUtils.isDesktop,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      Obx(
+                        () => ProgressBar(
+                          progress: plPlayerController.progress,
+                          buffered: plPlayerController.buffered.value,
+                          total: plPlayerController.duration.value,
+                          progressBarColor: primary,
+                          baseBarColor: const Color(0x33FFFFFF),
+                          bufferedBarColor: bufferedBarColor,
+                          thumbColor: primary,
+                          thumbGlowColor: thumbGlowColor,
+                          barHeight: 3.5,
+                          thumbRadius: 2.5,
                         ),
                       ),
-                    if (plPlayerController.showViewPoints &&
-                        videoDetailController.viewPointList.isNotEmpty &&
-                        videoDetailController.showVP.value)
-                      Padding(
-                        padding: const .only(bottom: 4.25),
-                        child: ViewPointSegmentProgressBar(
-                          segments: videoDetailController.viewPointList,
-                          onSeek: PlatformUtils.isMobile
-                              ? (position) {
-                                  if (!plPlayerController.controlsLock.value) {
-                                    plPlayerController.seekTo(
-                                      position,
-                                      isSeek: false,
-                                    );
+                      if (plPlayerController.enableBlock &&
+                          videoDetailController.segmentProgressList.isNotEmpty)
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0.75,
+                          child: SegmentProgressBar(
+                            segments: videoDetailController.segmentProgressList,
+                          ),
+                        ),
+                      if (plPlayerController.showViewPoints &&
+                          videoDetailController.viewPointList.isNotEmpty &&
+                          videoDetailController.showVP.value)
+                        Padding(
+                          padding: const .only(bottom: 4.25),
+                          child: ViewPointSegmentProgressBar(
+                            segments: videoDetailController.viewPointList,
+                            onSeek: PlatformUtils.isMobile
+                                ? (position) {
+                                    if (!plPlayerController
+                                        .controlsLock
+                                        .value) {
+                                      plPlayerController.seekTo(
+                                        position,
+                                        isSeek: false,
+                                      );
+                                    }
                                   }
-                                }
-                              : null,
+                                : null,
+                          ),
                         ),
-                      ),
-                    if (plPlayerController.showDmChart &&
-                        videoDetailController.showDmTrendChart.value)
-                      if (videoDetailController.dmTrend.value?.dataOrNull
-                          case final list?)
-                        buildDmChart(primary, list, videoDetailController),
-                  ],
+                      if (plPlayerController.showDmChart &&
+                          videoDetailController.showDmTrendChart.value)
+                        if (videoDetailController.dmTrend.value?.dataOrNull
+                            case final list?)
+                          buildDmChart(primary, list, videoDetailController),
+                    ],
+                  ),
                 ),
               );
             }),

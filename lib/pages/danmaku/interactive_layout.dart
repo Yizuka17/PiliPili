@@ -46,12 +46,16 @@ class InteractiveCardLayout extends SingleChildLayoutDelegate {
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
     final visible = bounds(constraints.biggest);
-    final compact = constraints.maxWidth < 600 && constraints.maxHeight < 360;
     return BoxConstraints(
-      maxWidth: math.min(
-        compact ? math.min(180, visible.width * .36) : 310,
-        math.max(0, visible.width - 16),
-      ),
+      maxWidth: math
+          .min(
+            310.0,
+            math.min(constraints.maxWidth * .36, constraints.maxHeight * .64),
+          )
+          .clamp(
+            0.0,
+            math.max(0.0, visible.width - 16),
+          ),
       maxHeight: math.max(0, visible.height - 16),
     );
   }

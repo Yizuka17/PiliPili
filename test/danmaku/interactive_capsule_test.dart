@@ -40,6 +40,7 @@ class _Harness extends StatefulWidget {
   final InteractiveDanmaku card;
   final ValueNotifier<int> position;
   final double width;
+  final double? height;
   final Future<InteractiveDanmaku> Function()? read;
   final Future<void> Function(InteractiveDanmaku, int, int)? submit;
   final GlobalKey? captureKey;
@@ -47,6 +48,7 @@ class _Harness extends StatefulWidget {
     required this.card,
     required this.position,
     this.width = 360,
+    this.height,
     this.read,
     this.submit,
     this.captureKey,
@@ -59,7 +61,7 @@ class _HarnessState extends State<_Harness> {
   bool expanded = false;
   @override
   Widget build(BuildContext context) {
-    final size = Size(widget.width, widget.width * 9 / 16);
+    final size = Size(widget.width, widget.height ?? widget.width * 9 / 16);
     return MaterialApp(
       theme: ThemeData(
         useMaterial3: true,
@@ -332,6 +334,10 @@ void main() {
   testWidgets(
     'expansion and selected score survive fullscreen and portrait transitions',
     (tester) async {
+      tester.view.physicalSize = const Size(1280, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
       final card = _card(InteractiveKind.grade), position = ValueNotifier(1000);
       addTearDown(position.dispose);
       await tester.pumpWidget(_Harness(card: card, position: position));
@@ -387,4 +393,104 @@ void main() {
     );
     expect(rect.contains(second), isTrue);
   });
+
+  testWidgets(
+    'card, typography and capsule grow with the video window up to desktop limits',
+    (tester) async {
+      tester.view.physicalSize = const Size(1920, 1200);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final card = _card(InteractiveKind.vote, fourOptions: true),
+          position = ValueNotifier(1000);
+      addTearDown(position.dispose);
+      double previousWidth = 0, previousText = 0, previousCapsule = 0;
+      for (final width in [
+        240.0,
+        360.0,
+        480.0,
+        500.0,
+        501.0,
+        640.0,
+        860.0,
+        1280.0,
+        1920.0,
+      ]) {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(
+          _Harness(card: card, position: position, width: width),
+        );
+        await tester.pumpAndSettle();
+        final capsule = tester
+            .getRect(find.byKey(const ValueKey('interactive-capsule')))
+            .height;
+        expect(capsule, greaterThanOrEqualTo(previousCapsule - .001));
+        expect(capsule, lessThanOrEqualTo(30.81));
+        previousCapsule = capsule;
+        await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+        await tester.pumpAndSettle();
+        final surface = tester.getRect(
+          find.byKey(const ValueKey('visible-card')),
+        );
+        final textHeight = tester.getRect(find.text('今天真的很香')).height;
+        expect(surface.width, greaterThanOrEqualTo(previousWidth - .001));
+        expect(surface.width, lessThanOrEqualTo(310.01));
+        expect(textHeight, greaterThanOrEqualTo(previousText - .001));
+        previousWidth = surface.width;
+        previousText = textHeight;
+        expect(tester.takeException(), isNull);
+      }
+      expect(previousWidth, 310);
+      expect(tester.widget<Text>(find.text('今天真的很香')).style!.fontSize, 14);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(
+        _Harness(card: card, position: position, width: 960, height: 180),
+      );
+      await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+      await tester.pumpAndSettle();
+      expect(
+        tester.getRect(find.byKey(const ValueKey('visible-card'))).width,
+        closeTo(115.2, .01),
+      );
+    },
+  );
+
+  testWidgets(
+    'option counts are small bare numbers and refresh stays above full-width options',
+    (tester) async {
+      final card = _card(InteractiveKind.vote);
+      card.extra['my_vote'] = 1;
+      final options = card.extra['options'] as List;
+      options[0]['cnt'] = 1234;
+      options[1]['cnt'] = 567;
+      final position = ValueNotifier(1000);
+      addTearDown(position.dispose);
+      await tester.pumpWidget(_Harness(card: card, position: position));
+      await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+      await tester.pumpAndSettle();
+      final first = tester.widget<Text>(
+        find.byKey(const ValueKey('option-count-1')),
+      );
+      final second = tester.widget<Text>(
+        find.byKey(const ValueKey('option-count-2')),
+      );
+      expect(first.data, '1234');
+      expect(second.data, '567');
+      expect(
+        first.style!.fontSize!,
+        lessThan(tester.widget<Text>(find.text('真香')).style!.fontSize!),
+      );
+      final refresh = tester.getRect(find.byTooltip('刷新结果'));
+      final close = tester.getRect(find.byKey(const ValueKey('dismiss-card')));
+      final option = tester.getRect(find.byKey(const ValueKey('option-1')));
+      expect(refresh.center.dy, close.center.dy);
+      expect(refresh.bottom, lessThanOrEqualTo(option.top));
+      expect(
+        option.width,
+        greaterThan(
+          tester.getRect(find.byKey(const ValueKey('visible-card'))).width * .8,
+        ),
+      );
+    },
+  );
 }

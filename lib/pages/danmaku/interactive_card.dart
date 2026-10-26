@@ -1,11 +1,13 @@
 import 'package:Pilipili/models_new/danmaku/interactive.dart';
 import 'package:material_ui/material_ui.dart';
 
-/// A card keeps its local dismissal and acknowledgement through seeks/fullscreen.
+/// A timed capsule retains its choice and acknowledgement through fullscreen.
 class InteractiveDanmakuCard extends StatefulWidget {
   final InteractiveDanmaku initial;
   final bool visible;
   final int Function() progress;
+  final Listenable? positionChanges;
+  final ValueChanged<bool>? onExpandedChanged;
   final bool Function() canInteract;
   final Future<InteractiveDanmaku> Function() read;
   final Future<void> Function(InteractiveDanmaku, int, int) submit;
@@ -15,6 +17,8 @@ class InteractiveDanmakuCard extends StatefulWidget {
     required this.initial,
     required this.visible,
     required this.progress,
+    this.positionChanges,
+    this.onExpandedChanged,
     required this.canInteract,
     required this.read,
     required this.submit,
@@ -28,24 +32,59 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
   final ScrollController _contentController = ScrollController();
   late InteractiveDanmaku card = widget.initial;
   int selected = 0;
-  bool busy = false, uncertain = false, acknowledged = false, dismissed = false;
+  bool busy = false, uncertain = false, acknowledged = false, expanded = false;
   bool get canSubmit =>
       selected != 0 &&
+      expanded &&
       card.participation == 0 &&
       widget.visible &&
-      !dismissed &&
       !busy &&
       !uncertain &&
       !acknowledged;
 
   @override
+  void initState() {
+    super.initState();
+    widget.positionChanges?.addListener(positionChanged);
+  }
+
+  void positionChanged() {
+    if (!mounted || !widget.visible) return;
+    if (expanded && !card.visibleAt(widget.progress())) {
+      setExpanded(false);
+      return;
+    }
+    setState(() {});
+  }
+
+  void setExpanded(bool value) {
+    if (expanded == value) return;
+    setState(() {
+      expanded = value;
+    });
+    widget.onExpandedChanged?.call(value);
+  }
+
+  @override
+  void didUpdateWidget(InteractiveDanmakuCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.positionChanges != widget.positionChanges) {
+      oldWidget.positionChanges?.removeListener(positionChanged);
+      widget.positionChanges?.addListener(positionChanged);
+    }
+    if (!widget.visible) expanded = false;
+  }
+
+  @override
   void dispose() {
+    widget.positionChanges?.removeListener(positionChanged);
     _contentController.dispose();
     super.dispose();
   }
 
   void choose(int value) {
-    if (busy ||
+    if (!expanded ||
+        busy ||
         uncertain ||
         acknowledged ||
         card.participation != 0 ||
@@ -80,7 +119,11 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
     var attempted = false;
     try {
       final fresh = await widget.read();
-      if (!mounted || !widget.visible || dismissed || !widget.canInteract()) {
+      if (!mounted ||
+          !widget.visible ||
+          !expanded ||
+          !card.visibleAt(widget.progress()) ||
+          !widget.canInteract()) {
         return;
       }
       setState(() => card = fresh);
@@ -109,8 +152,282 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
     }
   }
 
+  Widget compactCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final vote = card.kind == InteractiveKind.vote;
+    final value = card.participation != 0 ? card.participation : selected;
+    final editable =
+        !busy && !acknowledged && !uncertain && card.participation == 0;
+    final showSubmit =
+        selected != 0 && card.participation == 0 && !acknowledged && !uncertain;
+    final text = theme.textTheme.bodySmall!.copyWith(
+      fontSize: 9,
+      fontWeight: FontWeight.w400,
+      height: 1.15,
+      letterSpacing: 0,
+    );
+    Widget action(
+      String tooltip,
+      IconData icon,
+      VoidCallback? onPressed, {
+      Key? key,
+    }) => IconButton(
+      key: key,
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(icon, size: 12),
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      constraints: const BoxConstraints.tightFor(width: 18, height: 18),
+      padding: EdgeInsets.zero,
+    );
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.1,
+      child: Card.filled(
+        key: const ValueKey('visible-card'),
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
+        color: colors.surfaceContainerHigh,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: Padding(
+          padding: const EdgeInsets.all(5),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Scrollbar(
+                        controller: _contentController,
+                        child: SingleChildScrollView(
+                          key: const ValueKey('card-content'),
+                          controller: _contentController,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 2),
+                                child: Text(
+                                  card.question,
+                                  style: text.copyWith(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              if (vote)
+                                for (final option in card.options)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 2),
+                                    child: Semantics(
+                                      selected: value == option['idx'],
+                                      child: Material(
+                                        color: value == option['idx']
+                                            ? colors.secondaryContainer
+                                            : colors.surfaceContainerHighest,
+                                        borderRadius: BorderRadius.circular(6),
+                                        clipBehavior: Clip.antiAlias,
+                                        child: InkWell(
+                                          key: ValueKey(
+                                            'option-${option['idx']}',
+                                          ),
+                                          onTap:
+                                              editable &&
+                                                  option['has_self_def'] != true
+                                              ? () =>
+                                                    choose(option['idx'] as int)
+                                              : null,
+                                          child: ConstrainedBox(
+                                            constraints: const BoxConstraints(
+                                              minHeight: 18,
+                                            ),
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 5,
+                                                    vertical: 3,
+                                                  ),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      '${option['desc']}',
+                                                      style: text,
+                                                    ),
+                                                  ),
+                                                  if (value == option['idx'])
+                                                    const Padding(
+                                                      padding: EdgeInsets.only(
+                                                        left: 2,
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.check,
+                                                        size: 10,
+                                                      ),
+                                                    ),
+                                                  if (card.participation != 0)
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            left: 2,
+                                                          ),
+                                                      child: Text(
+                                                        '${option['cnt'] ?? '—'}',
+                                                        style: text.copyWith(
+                                                          fontSize: 8,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                              else
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final starWidth =
+                                        ((constraints.maxWidth -
+                                                    (value != 0 ? 22 : 0)) /
+                                                5)
+                                            .clamp(0.0, 20.0);
+                                    return Row(
+                                      children: [
+                                        for (var star = 1; star <= 5; star++)
+                                          IconButton(
+                                            key: ValueKey('star-$star'),
+                                            tooltip: '$star 星',
+                                            onPressed: editable
+                                                ? () => choose(star * 2)
+                                                : null,
+                                            icon: Icon(
+                                              value >= star * 2
+                                                  ? Icons.star_rounded
+                                                  : Icons.star_outline_rounded,
+                                              size: (starWidth * .9).clamp(
+                                                0.0,
+                                                15.0,
+                                              ),
+                                            ),
+                                            color: colors.primary,
+                                            disabledColor: colors.primary,
+                                            style: IconButton.styleFrom(
+                                              tapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
+                                            ),
+                                            constraints:
+                                                BoxConstraints.tightFor(
+                                                  width: starWidth,
+                                                  height: 20,
+                                                ),
+                                            padding: EdgeInsets.zero,
+                                          ),
+                                        if (value != 0)
+                                          Expanded(
+                                            child: Text(
+                                              '$value 分',
+                                              key: const ValueKey(
+                                                'personal-score',
+                                              ),
+                                              textAlign: TextAlign.end,
+                                              style: text.copyWith(fontSize: 8),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        action(
+                          '收起卡片',
+                          Icons.close,
+                          () => setExpanded(false),
+                          key: const ValueKey('dismiss-card'),
+                        ),
+                        action('刷新结果', Icons.refresh, busy ? null : refresh),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      vote
+                          ? '共 ${card.participantCount ?? '—'} 票'
+                          : '${card.averageScore?.toStringAsFixed(1) ?? '—'}/10 · ${card.participantCount ?? '—'} 人',
+                      style: text.copyWith(
+                        fontSize: 8,
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  if (showSubmit) ...[
+                    const SizedBox(width: 4),
+                    FilledButton(
+                      key: const ValueKey('submit'),
+                      onPressed: canSubmit ? send : null,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(36, 20),
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        textStyle: text.copyWith(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      child: Text(busy ? '提交中' : '提交'),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget interactiveCard() => LayoutBuilder(
     builder: (context, constraints) {
+      if (constraints.maxWidth <= 180) {
+        // A single scale applies to text, icons, spacing and hit testing alike.
+        const designWidth = 130.0;
+        final scale = constraints.maxWidth / designWidth;
+        if (scale <= 0) return const SizedBox.shrink();
+        return SizedBox(
+          width: constraints.maxWidth,
+          child: FittedBox(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: designWidth,
+                maxWidth: designWidth,
+                maxHeight: constraints.maxHeight / scale,
+              ),
+              child: compactCard(context),
+            ),
+          ),
+        );
+      }
       final theme = Theme.of(context);
       final colors = theme.colorScheme;
       final compact = constraints.maxHeight < 260;
@@ -171,8 +488,8 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
                     ),
                     IconButton(
                       key: const ValueKey('dismiss-card'),
-                      tooltip: '关闭卡片',
-                      onPressed: () => setState(() => dismissed = true),
+                      tooltip: '收起卡片',
+                      onPressed: () => setExpanded(false),
                       icon: const Icon(Icons.close, size: 18),
                       constraints: const BoxConstraints.tightFor(
                         width: 32,
@@ -360,8 +677,64 @@ class _InteractiveDanmakuCardState extends State<InteractiveDanmakuCard> {
     },
   );
 
+  Widget capsule(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final label = card.kind == InteractiveKind.vote ? '投票' : '打分';
+    final remaining = card.progressMs + card.durationMs - widget.progress();
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: 1.1,
+      child: Semantics(
+        label: '剩余 ${(remaining / 1000).ceil()} 秒',
+        child: Tooltip(
+          message: '展开$label',
+          child: Material(
+            color: colors.surfaceContainerHigh,
+            borderRadius: BorderRadius.circular(20),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              key: const ValueKey('interactive-capsule'),
+              onTap: () => setExpanded(true),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: 10,
+                      height: 10,
+                      child: CircularProgressIndicator(
+                        key: const ValueKey('capsule-countdown'),
+                        value: (remaining / card.durationMs).clamp(0.0, 1.0),
+                        strokeWidth: 1.5,
+                        color: colors.primary,
+                        backgroundColor: colors.outlineVariant,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 9,
+                        height: 1.1,
+                        color: colors.onSurface,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) => !widget.visible || dismissed
+  Widget build(BuildContext context) =>
+      !widget.visible || !card.visibleAt(widget.progress())
       ? const SizedBox.shrink()
-      : interactiveCard();
+      : expanded
+      ? interactiveCard()
+      : capsule(context);
 }

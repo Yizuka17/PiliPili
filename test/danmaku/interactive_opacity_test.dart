@@ -89,6 +89,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('star-4')));
     await tester.pumpAndSettle();
     expect(find.text('8 分'), findsOneWidget);

@@ -165,6 +165,8 @@ void main() {
           submit: (_, _, _) async => writes++,
         );
         await tester.pumpWidget(page(true));
+        await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+        await tester.pumpAndSettle();
         await tester.tap(
           find.byKey(ValueKey(index == 0 ? 'option-1' : 'star-5')),
         );
@@ -193,6 +195,8 @@ void main() {
             },
           ),
         );
+        await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+        await tester.pumpAndSettle();
         await tester.tap(
           find.byKey(ValueKey(index == 0 ? 'option-1' : 'star-5')),
         );
@@ -231,6 +235,8 @@ void main() {
           ),
         );
         expect(find.byKey(const ValueKey('submit')), findsNothing);
+        await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+        await tester.pumpAndSettle();
         await tester.tap(
           find.byKey(ValueKey(index == 0 ? 'option-1' : 'star-5')),
         );
@@ -273,6 +279,7 @@ void main() {
           },
         );
         await tester.pumpWidget(page());
+        await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
         await tester.pumpAndSettle();
         expect(find.byKey(const ValueKey('submit')), findsNothing);
         if (index == 0) {

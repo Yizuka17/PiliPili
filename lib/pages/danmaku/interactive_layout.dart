@@ -33,15 +33,23 @@ Rect interactiveVideoFrame(
 class InteractiveCardLayout extends SingleChildLayoutDelegate {
   final Offset position;
   final Rect videoFrame;
-  const InteractiveCardLayout(this.position, this.videoFrame);
+  final bool capsule;
+  final int capsuleSlot;
+  const InteractiveCardLayout(
+    this.position,
+    this.videoFrame, {
+    this.capsule = false,
+    this.capsuleSlot = 0,
+  });
 
   Rect bounds(Size size) => videoFrame.intersect(Offset.zero & size);
   @override
   BoxConstraints getConstraintsForChild(BoxConstraints constraints) {
     final visible = bounds(constraints.biggest);
+    final compact = constraints.maxWidth < 600 && constraints.maxHeight < 360;
     return BoxConstraints(
       maxWidth: math.min(
-        visible.height < 260 ? math.min(280, visible.width * .8) : 310,
+        compact ? math.min(180, visible.width * .36) : 310,
         math.max(0, visible.width - 16),
       ),
       maxHeight: math.max(0, visible.height - 16),
@@ -52,6 +60,16 @@ class InteractiveCardLayout extends SingleChildLayoutDelegate {
   Offset getPositionForChild(Size size, Size childSize) {
     final visible = bounds(size);
     if (visible.width <= 16 || visible.height <= 16) return Offset.zero;
+    if (capsule) {
+      return Offset(
+        visible.left + 8,
+        (visible.bottom -
+                childSize.height -
+                math.min(40, visible.height * .18) -
+                capsuleSlot * (childSize.height + 6))
+            .clamp(visible.top + 8, visible.bottom - childSize.height - 8),
+      );
+    }
     final center = Offset(
       videoFrame.left + videoFrame.width * position.dx,
       videoFrame.top + videoFrame.height * position.dy,
@@ -70,5 +88,8 @@ class InteractiveCardLayout extends SingleChildLayoutDelegate {
 
   @override
   bool shouldRelayout(InteractiveCardLayout oldDelegate) =>
-      oldDelegate.position != position || oldDelegate.videoFrame != videoFrame;
+      oldDelegate.position != position ||
+      oldDelegate.videoFrame != videoFrame ||
+      oldDelegate.capsule != capsule ||
+      oldDelegate.capsuleSlot != capsuleSlot;
 }

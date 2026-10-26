@@ -45,11 +45,14 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
   CancelToken? request;
   StreamSubscription<dynamic>? accountEvents;
   int generation = 0, progress = 0;
+  final ValueNotifier<int> positionChanges = ValueNotifier(0);
   Set<String> showing = {};
+  final Set<String> expandedCards = {};
   @override
   void initState() {
     super.initState();
     progress = widget.player.positionInMilliseconds;
+    positionChanges.value = progress;
     widget.player.addPositionListener(onPosition);
     accountEvents = Accounts.account.watch().listen((_) {
       if (mounted && account != Accounts.main) unawaited(load());
@@ -63,12 +66,14 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
     request?.cancel();
     unawaited(accountEvents?.cancel());
     widget.player.removePositionListener(onPosition);
+    positionChanges.dispose();
     super.dispose();
   }
 
   @override
   void didUpdateWidget(InteractiveDanmakuOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!widget.enabled) expandedCards.clear();
     if (oldWidget.player != widget.player) {
       oldWidget.player.removePositionListener(onPosition);
       widget.player.addPositionListener(onPosition);
@@ -77,6 +82,7 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
         oldWidget.cid != widget.cid ||
         oldWidget.player != widget.player) {
       progress = widget.player.positionInMilliseconds;
+      positionChanges.value = progress;
       unawaited(load());
     }
   }
@@ -85,6 +91,7 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
       cards.where((c) => c.visibleAt(progress)).map((c) => c.id).toSet();
   void onPosition(Duration value) {
     progress = value.inMilliseconds;
+    positionChanges.value = progress;
     if (account != Accounts.main) {
       unawaited(load());
       return;
@@ -92,6 +99,7 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
     final next = visibleCards();
     if (next.length != showing.length || !next.containsAll(showing)) {
       if (mounted) setState(() => showing = next);
+      expandedCards.retainAll(next);
     }
   }
 
@@ -104,6 +112,7 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
       setState(() {
         cards = const [];
         showing = {};
+        expandedCards.clear();
       });
     }
     if (widget.aid <= 0 || widget.cid <= 0) return;
@@ -168,6 +177,7 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
   @override
   Widget build(BuildContext context) {
     final boundAccount = account;
+    final currentGeneration = generation;
     if (cards.isEmpty || boundAccount == null) return const SizedBox.shrink();
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -180,6 +190,16 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
         );
         final visibleFrame = frame.intersect(Offset.zero & constraints.biggest);
         final inView = visibleFrame.width > 16 && visibleFrame.height > 16;
+        final capsuleSlots = {
+          for (final (index, card)
+              in cards
+                  .where(
+                    (c) =>
+                        showing.contains(c.id) && !expandedCards.contains(c.id),
+                  )
+                  .indexed)
+            card.id: index,
+        };
         return InteractiveCardOpacity(
           child: ClipRect(
             child: Stack(
@@ -193,6 +213,8 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
                         widget.flipY ? 1 - card.position.dy : card.position.dy,
                       ),
                       frame,
+                      capsule: !expandedCards.contains(card.id),
+                      capsuleSlot: capsuleSlots[card.id] ?? 0,
                     ),
                     child: InteractiveDanmakuCard(
                       key: ValueKey('$generation-${card.id}'),
@@ -200,6 +222,17 @@ class _InteractiveDanmakuOverlayState extends State<InteractiveDanmakuOverlay> {
                       visible:
                           widget.enabled && inView && showing.contains(card.id),
                       progress: () => widget.player.positionInMilliseconds,
+                      positionChanges: positionChanges,
+                      onExpandedChanged: (expanded) {
+                        if (!mounted || currentGeneration != generation) return;
+                        setState(() {
+                          if (expanded) {
+                            expandedCards.add(card.id);
+                          } else {
+                            expandedCards.remove(card.id);
+                          }
+                        });
+                      },
                       canInteract: canInteract,
                       read: () => readCard(card, boundAccount),
                       submit: (fresh, choice, milliseconds) async {

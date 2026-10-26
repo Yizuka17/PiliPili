@@ -108,6 +108,8 @@ void main() {
             ),
           );
           await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const ValueKey('interactive-capsule')));
+          await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
           final player = tester.getRect(find.byKey(const ValueKey('player')));
           final surface = tester.getRect(
